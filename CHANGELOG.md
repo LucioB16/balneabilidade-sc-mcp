@@ -23,6 +23,7 @@ versioning once a stable public API is declared.
   parsing is incomplete; it never fabricates rows.
 - 71 offline tests, ruff and mypy checks; CI workflow for 3.11/3.12.
 - Public documentation, MIT code license, attribution/security/release notes.
+- English, Spanish (rioplatense) and Portuguese (BR) READMEs with a language selector, a prompt-based installer and Bombinhas examples.
 
 ### Known limitations
 

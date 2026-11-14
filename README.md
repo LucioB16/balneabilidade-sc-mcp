@@ -1,49 +1,79 @@
+<p align="center">
+  <sub><strong>English</strong> · <a href="README.es-AR.md">Español (AR)</a> · <a href="README.pt-BR.md">Português (BR)</a></sub>
+</p>
+
+<p align="center">
+  <img src="assets/brand/wave-mark.svg" width="64" alt="Balneabilidade SC MCP wave mark">
+</p>
+
 # Balneabilidade SC MCP
 
-[![CI](https://github.com/LucioB16/balneabilidade-sc-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/LucioB16/balneabilidade-sc-mcp/actions/workflows/ci.yml)
+<p align="center">
+  <strong>Ask your agent about the water at the beach.</strong><br>
+  A local MCP server for dated samples published by IMA/SC, point by point.
+</p>
 
-**Local MCP server for official bathing-water data from Santa Catarina, Brazil.** It answers, per sampling point, what IMA/SC last published and when — and provides bounded, dated history. It is **not** a real-time water-quality sensor or a safety guarantee.
+<p align="center">
+  <a href="#installation">Installation</a> ·
+  <a href="#manual-install">Manual install</a> ·
+  <a href="#tools">Tools</a> ·
+  <a href="#what-a-response-includes">Response</a>
+</p>
 
-- Provider: [Instituto do Meio Ambiente de Santa Catarina (IMA/SC)](https://balneabilidade.ima.sc.gov.br/)
-- Transport: local **stdio** (no hosted endpoint)
-- Status: **0.1.0**, early public release
-- Code license: **MIT** (data is not covered; see [attribution](docs/ATTRIBUTION.md))
+<p align="center">
+  <a href="https://github.com/LucioB16/balneabilidade-sc-mcp/actions/workflows/ci.yml"><img src="https://github.com/LucioB16/balneabilidade-sc-mcp/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0B6E99" alt="MIT license"></a>
+</p>
 
-## What it does
+> **Dated samples, not live readings.** The card below is a real MCP response excerpt from the latest sample published by IMA/SC. It is not a screenshot and not a measurement taken right now. IMA/SC sampling is weekly in-season and monthly off-season.
 
-- Finds monitored beaches and distinguishes same-named beaches by municipality.
-- Lists IMA sampling points with UUID, location and coordinates when published.
-- Returns the latest **officially published dated** verdict for **each point**, with sample date, bulletin date, source and freshness.
-- Returns dated CSV history with inclusive ranges, descending order and bounded pagination.
-- Keeps mixed, partial, stale, excluded and unknown states explicit instead of converting them to "safe".
-- Optionally renders bulletin pages as PNG when deterministic PDF parsing is incomplete, so a vision-capable client can read the original page.
+| Latest published sample | Praia de Zimbros · Bombinhas |
+|:--|:--|
+| Ponto 09 | `improper` · 1,046 NMP/100mL |
+| Ponto 10 | `proper` · 789 NMP/100mL |
+| Sample date | 2026-11-09 |
+| Bulletin | 2026-11-13 |
+| Beach summary | `mixed` — the points disagree |
 
-## What it does not do
+The answer names each sampling point, the date it was sampled and the bulletin that published it. A beach is never reduced to one point's verdict.
 
-- It does not measure water quality in real time and does not guarantee that water is safe now.
-- It does not cover other Brazilian states, weather, waves, jellyfish, rankings or tourist recommendations.
-- It does not reclassify IMA results from E. coli counts.
-- It does not expose a remote/public HTTP endpoint. Streamable HTTP is only a documented future option.
+## What you can ask
 
-## Safety and freshness
+- “What is the latest published result for Praia de Zimbros, and when was it sampled?”
+- “Show every sampling point; are the conditions mixed?”
+- “Show the 2025 history for Praia de Zimbros, with dates and lab values.”
+- “Which beaches are called Praia Brava?” — the answer returns candidates, not a guess.
 
-IMA samples weekly in-season (October–March) and monthly off-season (April–September). A "proper" result means the agency classified a **dated sample** as proper, not that conditions are safe at the moment of the question.
+## Installation
 
-The provider follows these rules:
+### Install with your agent
 
-- The latest bulletin PDF is authoritative for current status.
-- Points outside the bulletin's collection window, or listed as not collected, are `carried_forward` — visible with their real older date, never presented as current.
-- A sample explicitly discarded by IMA is `excluded`; its raw label is preserved but the point is `unknown`.
-- The map's undated `CONDICAO` is used only for catalog/coordinates, never as status.
-- A beach summary is `mixed` when points disagree and `partial` when some points are stale/excluded/unknown. Any improper point prevents a `proper` summary.
+Copy this prompt into a coding agent. It includes the repository and the setup guide, so the agent does not need to search for either.
 
-## Requirements
+```text
+Install the Balneabilidade SC MCP server from:
+https://github.com/LucioB16/balneabilidade-sc-mcp
 
-- Python 3.11 or newer
-- [uv](https://docs.astral.sh/uv/)
-- An MCP client that supports stdio servers
+Setup guide:
+https://github.com/LucioB16/balneabilidade-sc-mcp/blob/main/docs/MCP_SERVER.md
 
-## Install and run
+Do it locally. Do not search for the project or the documentation elsewhere.
+
+Requirements:
+- Clone the repository into a directory I confirm.
+- Use uv: run `uv sync --extra dev` and `uv run pytest`.
+- Register a local stdio MCP server named `balneabilidade-sc`:
+  `uv --directory <checkout> run balneabilidade-sc-mcp`
+- If you cannot edit my MCP client configuration, print the exact JSON and tell me where to paste it.
+- Verify the client lists all five tools and run one query for "Praia de Zimbros", municipality "Bombinhas".
+- Show me the configuration and the verification output.
+
+Do not expose the server over the network. Ask before modifying files outside the project or any global configuration. Do not install globally. Do not commit credentials or local configuration.
+```
+
+If `uv` is not installed, ask before installing it. Manual setup is below.
+
+### Manual install
 
 ```bash
 git clone https://github.com/LucioB16/balneabilidade-sc-mcp.git
@@ -52,11 +82,9 @@ uv sync --extra mcp
 uv run balneabilidade-sc-mcp
 ```
 
-The last command starts the stdio server and waits for a client. Logs go to **stderr**; stdout is reserved for MCP protocol messages.
+The last command starts the stdio server and waits for a client. Logs go to stderr; stdout carries the MCP protocol.
 
-## MCP client configuration
-
-Using `uv` (portable; adjust the absolute path):
+Add it to an MCP client with `uv --directory` (adjust the absolute path):
 
 ```json
 {
@@ -74,7 +102,7 @@ Using `uv` (portable; adjust the absolute path):
 }
 ```
 
-On Windows, this also works:
+On Windows, the installed executable also works:
 
 ```json
 {
@@ -87,48 +115,63 @@ On Windows, this also works:
 }
 ```
 
-See [docs/MCP_SERVER.md](docs/MCP_SERVER.md) for a verified example and troubleshooting.
-
 ## Tools
 
 | Tool | Main inputs | What it returns |
-|---|---|---|
-| `search_beaches` | `query`, optional `municipality`, `limit` | Candidate beaches with municipality, point count and match type |
-| `get_sampling_points` | `beach`, optional `municipality` | Point UUIDs, names, locations and coordinates |
-| `get_bathing_status` | `beach`, optional `municipality`, `point_id` | Latest dated verdict per point, beach summary, freshness, provenance |
+|:--|:--|:--|
+| `search_beaches` | `query`, optional `municipality`, `limit` | Candidate beaches, municipality, point count and match type |
+| `get_sampling_points` | `beach`, optional `municipality` | Point UUIDs, locations and coordinates |
+| `get_bathing_status` | `beach`, optional `municipality`, `point_id` | Latest dated result per point, beach summary, freshness and provenance |
 | `get_bathing_history` | `beach`, optional `municipality`, `point_id`, `from_date`, `to_date`, `limit`, `cursor` | Dated CSV records with qualifiers, unit, raw names and coverage |
 | `get_bulletin_page` | `page`, optional `bulletin_date`, `dpi` | PNG page for vision fallback only |
 
-## Example questions
+## What a response includes
+
+Every dated point result carries:
+
+| Field | Meaning |
+|:--|:--|
+| `classification` | `proper`, `improper`, `indeterminate` or `unknown` |
+| `freshness` | `current`, `carried_forward`, `excluded`, `stale`, `unverified` or `unknown` |
+| `sample_date` | The date the sample was collected |
+| `bulletin_date` | The date the publishing bulletin was issued, when known |
+| `source` / `source_url` | `bulletin_pdf`, `csv`, `analyses`, `catalog` or `cache`, plus the source URL |
+| `summary.status` | `proper`, `improper`, `mixed`, `partial` or `unknown` |
+
+A point that IMA/SC did not collect, or one whose sample was discarded, is not presented as current. The point keeps its raw label and an explicit freshness flag. Any improper point prevents a `proper` beach summary.
+
+## History
+
+`get_bathing_history` reads the CSV exports published by IMA/SC:
+
+- inclusive `from_date`/`to_date` and descending order;
+- bounded pagination with a cursor;
+- raw point names, location and `csv_year`;
+- E. coli values with `<20`/`<10`/`> 24196` qualifiers and the `NMP/100mL` unit;
+- `years_without_data` separated from `years_unavailable`;
+- exact duplicate rows are deduplicated and counted;
+- point-name drift is exposed in `unmatched_names` instead of being guessed;
+- when CSV and the latest bulletin disagree about the same sample, the bulletin verdict is kept and a warning is returned.
+
+History is CSV-native. The latest bulletin PDF is authoritative for current status.
+
+## Examples
 
 Spanish:
 
-- "¿Está apta para bañarse la Praia do Perequê, en Porto Belo? ¿En qué puntos y de qué fecha son los resultados?"
-- "Mostrame el historial de Praia do Campeche entre diciembre de 2025 y marzo de 2026."
-- "No sé el municipio; ¿qué playas se parecen a 'Praia Brava'?"
+- “¿Cuál es el último resultado publicado para Praia de Zimbros, en Bombinhas?”
+- “Mostrame cada punto de muestreo y el historial de 2025.”
 
 Portuguese:
 
-- "Qual é a condição atual da Praia de Zimbros, em Bombinhas?"
-- "Mostre o histórico da Praia do Campeche em 2025."
-- "Quais são os pontos de coleta da Praia de Garopaba?"
+- “Qual é o último resultado publicado para a Praia de Zimbros, em Bombinhas?”
+- “Mostre o histórico de 2025 com as datas e os valores de E. coli.”
 
-A correct answer names the point(s), the **sample date**, the **bulletin date** and the source; it does not say "safe now".
-
-## Status fields
-
-| Field | Values |
-|---|---|
-| `classification` | `proper`, `improper`, `indeterminate`, `unknown` |
-| `freshness` | `current`, `carried_forward`, `excluded`, `stale`, `unverified`, `unknown` |
-| `summary.status` | `proper`, `improper`, `mixed`, `partial`, `unknown` |
-| `source` | `bulletin_pdf`, `csv`, `analyses`, `catalog`, `cache` |
-
-History returns `years_without_data` separately from `years_unavailable`, deduplicates exact duplicate measurements, preserves `<20`/`<10`/`> 24196` qualifiers and exposes `unmatched_names` when point names drift.
+A good answer always gives the point, the sample date and the bulletin date. It does not say “safe now”.
 
 ## Vision fallback
 
-The deterministic PDF parser is primary. If it cannot validate a trustworthy point table, `get_bathing_status` includes `vision_fallback` metadata. A client with a vision-capable model can call `get_bulletin_page` and read the original PNG pages. The server does **not** call an LLM, does not fabricate rows and does not upgrade the status when a vision model might read a page.
+The deterministic PDF parser is primary. If it cannot validate a trustworthy point table, `get_bathing_status` includes `vision_fallback` metadata. A client with a vision-capable model can call `get_bulletin_page` and read the original PNG pages. The server does not call an LLM, does not invent rows and does not upgrade the status because a model might read a page.
 
 ## Development
 
@@ -141,37 +184,40 @@ uv run mypy src
 uv build
 ```
 
-The offline suite has 71 tests and never calls IMA. The live discovery probe is separate and read-only:
+The offline suite has 71 tests and never calls IMA. The read-only discovery probe is separate:
 
 ```bash
 python scripts/discovery_probe.py
 ```
 
-CI runs lint, format check, mypy, offline tests and package build on Python 3.11 and 3.12. It does not require IMA credentials or network access.
+CI runs lint, format check, mypy, offline tests and package build on Python 3.11 and 3.12. It needs no credentials and makes no IMA calls.
 
-## Troubleshooting
+## Data, attribution and license
 
-- **Ambiguous beach:** supply `municipality`; known duplicates include Praia Brava (Florianópolis/Itajaí) and Praia dos Ingleses (Florianópolis/São Francisco do Sul).
-- **No data:** the tool returns `unknown`/`partial` with warnings; this is not a proper verdict.
-- **Provider outage:** the provider may return a dated CSV/analyses fallback with `bulletin_unverified=true`; it never silently claims current proper status.
-- **Vision fallback:** call `get_bulletin_page` only if the client supports images; mark unreadable pages as unverified.
-- **Client cannot connect:** ensure the command is absolute or `uv --directory` points at the checkout, and that logs are read from stderr.
+The source is the **Instituto do Meio Ambiente de Santa Catarina (IMA/SC)**, <https://balneabilidade.ima.sc.gov.br/>. Always cite the agency, the report/bulletin number, the sample date and the source URL.
 
-## Data provenance and attribution
+No data-reuse license was confirmed for IMA/SC material. This repository does not redistribute PDFs, CSV exports or bulk datasets; the provider fetches them at runtime. See [docs/ATTRIBUTION.md](docs/ATTRIBUTION.md) before publishing derived data.
 
-Official data: **IMA/SC**, <https://balneabilidade.ima.sc.gov.br/>. Always cite the agency, report/bulletin number and sample date.
-
-No explicit IMA data-reuse license was found. This repository does **not** redistribute IMA PDFs, CSV exports or bulk datasets; the provider fetches them at runtime. See [docs/ATTRIBUTION.md](docs/ATTRIBUTION.md) before publishing data or derived datasets.
-
-Reference implementation: [marola-dev/marola-app](https://github.com/marola-dev/marola-app) (MIT), reviewed at commit `7061a08e`. No Marola source code is copied.
+Code and documentation are MIT licensed. The license does not cover IMA/SC data. See [LICENSE](LICENSE).
 
 ## Limitations
 
-- PDF parsing is layout-dependent; the fallback is client-driven, not a server-side OCR service.
+- PDF parsing depends on layout; the vision fallback is client-driven, not a server-side OCR service.
 - History is CSV-native; the PDF is authoritative only for the latest bulletin.
-- Exact-name joins expose drift rather than guessing; a renamed point may appear as unmatched.
-- Local stdio only: no remote transport, authentication, access control or rate limiting. Do not expose it to the internet without a separate security phase.
+- Exact-name joins expose drift instead of guessing; renamed points may appear as unmatched.
+- Local stdio only: no remote transport, authentication, access control or rate limiting. Do not expose it to the internet without a separate security review.
 - No database: a small TTL file cache is used for catalog, PDFs and CSV.
+- This is not a medical or safety guarantee.
+
+## Documentation
+
+- [Discovery report](docs/DISCOVERY_REPORT.md)
+- [Product contract](docs/PRODUCT_CONTRACT.md)
+- [Provider](docs/PROVIDER.md)
+- [MCP server](docs/MCP_SERVER.md)
+- [Release notes](docs/RELEASE.md)
+- [Attribution and data licensing](docs/ATTRIBUTION.md)
+- [Security policy](SECURITY.md)
 
 ## Project layout
 
@@ -186,17 +232,3 @@ src/balneabilidade_sc_mcp/
 docs/               discovery, contract, provider, server, release, attribution
 tests/              71 offline tests with synthetic fixtures
 ```
-
-## Documentation
-
-- [Discovery report](docs/DISCOVERY_REPORT.md)
-- [Product contract](docs/PRODUCT_CONTRACT.md)
-- [Provider](docs/PROVIDER.md)
-- [MCP server](docs/MCP_SERVER.md)
-- [Release notes](docs/RELEASE.md)
-- [Attribution and data licensing](docs/ATTRIBUTION.md)
-- [Security policy](SECURITY.md)
-
-## License
-
-Code and documentation: **MIT** — see [LICENSE](LICENSE). The MIT license does not cover IMA/SC data or third-party material.

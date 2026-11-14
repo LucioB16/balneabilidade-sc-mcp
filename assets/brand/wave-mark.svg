@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Balneabilidade SC MCP wave mark">
+  <rect width="64" height="64" rx="16" fill="#0B2239"/>
+  <path d="M9 39c6.5-7 12.5-7 19 0s12.5 7 19 0 7.5-7 8-6.6" fill="none" stroke="#5EEAD4" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M9 48c6.5-7 12.5-7 19 0s12.5 7 19 0 7.5-7 8-6.6" fill="none" stroke="#F6EFE4" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>
+  <circle cx="32" cy="22" r="4.2" fill="#F6EFE4"/>
+</svg>
