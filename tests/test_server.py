@@ -127,6 +127,8 @@ async def test_history_payload_and_error_response() -> None:
         payload = json.loads(history.content[0].text)
         assert len(payload["records"]) == 2
         assert payload["next_cursor"] == "2"
+        assert payload["records"][0]["municipality"] == "Porto Belo"
+        assert payload["records"][0]["ecoli"]["unit"] == "NMP/100mL"
 
         error = await session.call_tool(
             "get_bathing_status", {"beach": "No Existe", "municipality": "Porto Belo"}

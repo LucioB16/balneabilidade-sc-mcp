@@ -92,6 +92,7 @@ def parse_csv(
                 tide=_clean(row[7]),
                 water_temp_c=parse_float(row[9]),
                 air_temp_c=parse_float(row[10]),
+                location=_clean(row[3]),
             )
         )
     return CsvExport(

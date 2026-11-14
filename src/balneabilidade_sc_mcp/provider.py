@@ -293,7 +293,10 @@ class ImaProvider:
         records: list[HistoryRecord] = []
         years_with_data: list[int] = []
         years_without_data: list[int] = []
+        years_unavailable: list[int] = []
         unmatched = 0
+        unmatched_names: set[str] = set()
+        duplicate_samples = 0
         successful_exports = 0
         errors: list[ImaError] = []
         for year in years:
@@ -301,6 +304,7 @@ class ImaProvider:
                 export = await self._history.fetch(resolved.municipality, resolved.name, year)
             except ImaError as exc:
                 errors.append(exc)
+                years_unavailable.append(year)
                 warnings.append(f"CSV unavailable for {year}: {exc}")
                 continue
             successful_exports += 1
@@ -316,8 +320,9 @@ class ImaProvider:
                 if point is None:
                     if folded_name not in beach_names:
                         unmatched += 1
+                        unmatched_names.add(sample.point_name)
                     continue
-                year_records.append(self._history_record(point, sample, export.source_url))
+                year_records.append(self._history_record(point, sample, export.source_url, year))
             if year_records:
                 years_with_data.append(year)
                 records.extend(year_records)
@@ -325,6 +330,18 @@ class ImaProvider:
                 years_without_data.append(year)
         if successful_exports == 0 and errors:
             raise ImaProviderUnavailable(f"no CSV history could be fetched: {errors[0]}") from errors[0]
+        seen_records: set[tuple[str | None, date, object]] = set()
+        deduped: list[HistoryRecord] = []
+        for record in records:
+            duplicate_key = (record.point_id, record.sample_date, record.sample_time)
+            if duplicate_key in seen_records:
+                duplicate_samples += 1
+                continue
+            seen_records.add(duplicate_key)
+            deduped.append(record)
+        if duplicate_samples:
+            warnings.append(f"{duplicate_samples} duplicate CSV measurement(s) ignored")
+        records = deduped
         records.sort(key=lambda record: (record.sample_date, record.point_name), reverse=True)
         offset = _parse_cursor(cursor)
         page = records[offset : offset + limit]
@@ -338,9 +355,12 @@ class ImaProvider:
                 years_requested=years,
                 years_with_data=tuple(years_with_data),
                 years_without_data=tuple(years_without_data),
+                years_unavailable=tuple(years_unavailable),
             ),
             next_cursor=next_cursor,
             unmatched_samples=unmatched,
+            duplicate_samples=duplicate_samples,
+            unmatched_names=tuple(sorted(unmatched_names)),
             fetched_at=self._clock(),
             warnings=tuple(dict.fromkeys(warnings)),
         )
@@ -674,11 +694,16 @@ class ImaProvider:
         )
 
     def _history_record(
-        self, point: CatalogPoint, sample: CsvSample, source_url: str
+        self, point: CatalogPoint, sample: CsvSample, source_url: str, csv_year: int
     ) -> HistoryRecord:
         return HistoryRecord(
             point_id=point.point_id,
             point_name=point.point_name,
+            municipality=sample.municipality or point.municipality,
+            beach=sample.beach or point.beach,
+            raw_point_name=sample.point_name,
+            location=sample.location,
+            csv_year=csv_year,
             sample_date=sample.sample_date,
             sample_time=sample.sample_time,
             classification=sample.classification,

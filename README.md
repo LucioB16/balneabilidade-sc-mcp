@@ -34,7 +34,7 @@ uv run ruff check src tests
 uv run mypy src
 ```
 
-Usage and implementation details are in [docs/PROVIDER.md](docs/PROVIDER.md). The offline suite has 64 tests and does not call IMA; the live probe below is separate.
+Usage and implementation details are in [docs/PROVIDER.md](docs/PROVIDER.md). The offline suite has 71 tests and does not call IMA; the live probe below is separate.
 
 ## MCP server (Phase 3)
 

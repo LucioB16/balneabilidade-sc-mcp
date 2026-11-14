@@ -154,13 +154,17 @@ class FakeBulletinRepository:
 
 class FakeHistoryRepository:
     def __init__(self, exports: dict[tuple[str, str, int], CsvExport] | None = None,
-                 error: Exception | None = None) -> None:
+                 error: Exception | None = None,
+                 error_years: dict[int, Exception] | None = None) -> None:
         self.exports = exports or {}
         self.error = error
+        self.error_years = error_years or {}
 
     async def fetch(self, municipality: str, beach: str, year: int) -> CsvExport:
         if self.error is not None:
             raise self.error
+        if year in self.error_years:
+            raise self.error_years[year]
         return self.exports.get(
             (municipality, beach, year), empty_csv_export(municipality, beach, year)
         )
@@ -187,6 +191,7 @@ def make_provider(
     analyses: AnalysesResult | None = None,
     bulletin_error: Exception | None = None,
     history_error: Exception | None = None,
+    history_error_years: dict[int, Exception] | None = None,
 ) -> ImaProvider:
     http = ImaHttpClient(transport=httpx.MockTransport(lambda request: httpx.Response(500)))
     return ImaProvider(
@@ -197,7 +202,9 @@ def make_provider(
             bulletin if bulletin is not None else make_bulletin(),
             error=bulletin_error,
         ),
-        history_repository=FakeHistoryRepository(history_exports or {}, error=history_error),
+        history_repository=FakeHistoryRepository(
+            history_exports or {}, error=history_error, error_years=history_error_years
+        ),
         analyses_repository=FakeAnalysesRepository(analyses, error=None),
         today=lambda: TODAY,
     )

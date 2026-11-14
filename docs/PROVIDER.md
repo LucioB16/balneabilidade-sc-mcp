@@ -35,7 +35,7 @@ src/balneabilidade_sc_mcp/
   history.py         /relatorio/exportarCSV POST + CSV parsing
   analyses.py        /relatorio/analisesPonto last-five adapter
   provider.py        source reconciliation, freshness, beach summary, history pagination
-tests/               offline synthetic fixtures and 64 tests (provider + MCP client)
+tests/               offline synthetic fixtures and 71 tests (provider + MCP client)
 ```
 
 ## Source policy implemented
@@ -66,9 +66,13 @@ tests/               offline synthetic fixtures and 64 tests (provider + MCP cli
 - `POST /relatorio/exportarCSV` with `municipioID`, `localID` and `ano`; the request is form-encoded with UTF-8 names.
 - `utf-8-sig` with BOM; LF; 13 columns; tolerant header (the official temperature columns contain a `}` typo).
 - Short `Sem registros` rows are no-data markers, not samples. Empty exports are valid no-data.
-- E. coli qualifiers `<20`, `<10`, `> 24196` and `> 24196` are preserved as `(value, qualifier, raw)`.
+- E. coli qualifiers `<20`, `<10`, `> 24196` and `> 24196` are preserved as `(value, qualifier, raw)` plus the official unit `NMP/100mL`.
+- History records preserve catalog identity and raw CSV provenance: `municipality`, `beach`, `point_name`, `raw_point_name`, `location`, `csv_year`, raw classification and source URL.
 - History is grouped by point and sorted descending; provider sorts globally by `(sample_date, point_name)` and paginates with a non-negative integer cursor.
 - Date ranges are bounded to 10 years per query; history starts in 2003; future `to_date` is rejected.
+- Exact duplicate rows (same point, date and time) are deduplicated and counted in `duplicate_samples`.
+- A failed year is `years_unavailable`; a successful empty year is `years_without_data`. Unmatched historical point names are exposed in `unmatched_names` and never fuzzy-matched.
+- History is CSV-native. The latest bulletin PDF remains authoritative for current status; a CSV/PDF verdict conflict keeps the PDF verdict and produces a warning.
 
 ## Vision fallback
 
@@ -139,8 +143,8 @@ With the default cache and a fixed `today=2026-11-14`:
 - `Praia de Ponta das Canas / Florianópolis`: `mixed`; Ponto 83 is `excluded`/`unknown` with raw `IMPRÓPRIA`, while current points 23/67/70 remain visible.
 - `Beira-Mar Norte / Florianópolis`: `improper`; Ponto 94 is `carried_forward` (19/10/2026) while 11 and 95 are current.
 - `Lagoa da Conceição / Florianópolis`: `mixed`; Ponto 96 is `carried_forward` (26/05/2026) while current points remain visible.
-- History for Perequê 2026 returned descending dated records with pagination.
-- Clean-clone validation: a fresh clone of commit a042d92 completed uv sync --extra dev, all 64 offline tests (provider + MCP), ruff and mypy, and a live provider query returned proper for the 3 Perequê points.
+- History for Perequê 2025 returned 3 points sampled 29/12/2025: Ponto 03 `improper` (279), Pontos 04/05 `proper` (132/20), all with `csv_year=2025` and raw CSV provenance. A 2025–2026 query covered both years, and 2026 history returned descending records with pagination.
+- Clean-clone validation: a fresh clone of commit a042d92 completed uv sync --extra dev, all 71 offline tests (provider + MCP), ruff and mypy, and a live provider query returned proper for the 3 Perequê points.
 
 ## Known limitations and next phases
 

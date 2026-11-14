@@ -37,10 +37,10 @@ This is a **phased** project. Execute only the next incomplete phase per run, th
 - [x] Update README with verified stdio setup and at least one working client configuration; run tests/lint; commit/push and stop.
 
 ## Phase 4 — Historic observations and comparison
-- [ ] Implement `get_bathing_history` over official dated records with municipality/beach/point filters, inclusive date range, descending ordering and bounded pagination.
-- [ ] Preserve raw IMA record provenance, sampling date, result counts/units, qualifiers (`<20` and similar) and classification when available; do not invent missing periods or recompute official classification.
-- [ ] Handle historical naming/point identifier drift and conflicting CSV/PDF rows transparently; document precedence and unresolved matches.
-- [ ] Add tests across years, year boundaries, duplicate measurements, missing years, empty results and date/time locale behavior.
+- [x] Implement `get_bathing_history` over official dated records with municipality/beach/point filters, inclusive date range, descending ordering and bounded pagination.
+- [x] Preserve raw IMA record provenance, sampling date, result counts/units, qualifiers (`<20` and similar) and classification when available; do not invent missing periods or recompute official classification.
+- [x] Handle historical naming/point identifier drift and conflicting CSV/PDF rows transparently; document precedence and unresolved matches.
+- [x] Add tests across years, year boundaries, duplicate measurements, missing years, empty results and date/time locale behavior.
 - [ ] Verify at least one end-to-end historical query and one latest-status query with real source evidence; update docs/plan and commit/push. **STOP.**
 
 ## Phase 5 — Public product quality and handoff

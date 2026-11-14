@@ -57,14 +57,17 @@ class Ecoli:
     value: int | None
     qualifier: Qualifier
     raw: str
+    unit: str = "NMP/100mL"
 
     @classmethod
-    def from_parts(cls, value: int | None, qualifier: str, raw: str) -> Ecoli:
+    def from_parts(
+        cls, value: int | None, qualifier: str, raw: str, unit: str = "NMP/100mL"
+    ) -> Ecoli:
         try:
             parsed = Qualifier(qualifier)
         except ValueError:
             parsed = Qualifier.UNKNOWN
-        return cls(value=value, qualifier=parsed, raw=raw)
+        return cls(value=value, qualifier=parsed, raw=raw, unit=unit)
 
 
 @dataclass(frozen=True)
@@ -170,6 +173,7 @@ class CsvSample:
     tide: str | None
     water_temp_c: float | None
     air_temp_c: float | None
+    location: str | None = None
 
 
 @dataclass(frozen=True)
@@ -264,6 +268,11 @@ class BeachStatusResult:
 class HistoryRecord:
     point_id: str | None
     point_name: str
+    municipality: str
+    beach: str
+    raw_point_name: str
+    location: str | None
+    csv_year: int
     sample_date: date
     sample_time: time | None
     classification: Classification
@@ -283,6 +292,7 @@ class HistoryCoverage:
     years_requested: tuple[int, ...]
     years_with_data: tuple[int, ...]
     years_without_data: tuple[int, ...]
+    years_unavailable: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -295,4 +305,6 @@ class HistoryResult:
     next_cursor: str | None
     unmatched_samples: int
     fetched_at: datetime
+    duplicate_samples: int = 0
+    unmatched_names: tuple[str, ...] = ()
     warnings: tuple[str, ...] = field(default_factory=tuple)

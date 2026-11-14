@@ -290,6 +290,11 @@ Return dated official records for one beach/point over a bounded date range.
     {
       "point_id": "390f41d4-e7d0-4642-baf4-b6ae2ceb111a",
       "point_name": "Ponto 03",
+      "municipality": "Porto Belo",
+      "beach": "Praia de Perequê",
+      "raw_point_name": "Ponto 03",
+      "location": "Avenida Senador Atílio Fontana, n°266, foz do Rio Perequizinho",
+      "csv_year": 2026,
       "sample_date": "2026-11-09",
       "classification": "proper",
       "raw_classification": "PRÓPRIA",
@@ -299,13 +304,16 @@ Return dated official records for one beach/point over a bounded date range.
       "tide": "Enchente",
       "water_temp_c": 21.0,
       "air_temp_c": 20.0,
-      "source": "ima_sc_csv",
+      "source": "csv",
       "source_url": "https://balneabilidade.ima.sc.gov.br/relatorio/exportarCSV"
     }
   ],
-  "coverage": {"years_requested": [2026], "years_with_data": [2026], "years_without_data": []},
+  "coverage": {"years_requested": [2026], "years_with_data": [2026], "years_without_data": [], "years_unavailable": []},
   "next_cursor": null,
-  "source": "ima_sc_csv",
+  "duplicate_samples": 0,
+  "unmatched_samples": 0,
+  "unmatched_names": [],
+  "source": "csv",
   "fetched_at": "2026-11-14T22:10:00Z",
   "warnings": []
 }
@@ -318,6 +326,10 @@ Rules:
 - Preserve official labels and raw values; do not recompute the classification.
 - Handle `Sem registros` as no data for that point/year, not as a sample.
 - Years outside 2003–2026 or with no rows: return explicit `years_without_data` and empty records, not a fabricated period.
+- A year that could not be fetched is `years_unavailable`, not `years_without_data`; the result is partial, not silently empty.
+- Exact duplicate measurements (same point, date and time) are deduplicated and counted in `duplicate_samples`; the warning is explicit.
+- Name drift is exposed through `unmatched_samples`/`unmatched_names`; never fuzzy-match or renumber a historical point.
+- History is CSV-native. The latest bulletin PDF remains authoritative for current status; if a CSV row for the same sample disagrees with the bulletin verdict, the status keeps the PDF verdict and warns.
 - If a year has no CSV data but the point has a bulletin row, optionally include it with source `bulletin_pdf` and a warning.
 - Historical naming drift: CSV has no point UUID; join by (municipality, beach, point) and expose `unmatched` rows. Do not silently drop.
 

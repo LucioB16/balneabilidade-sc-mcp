@@ -82,6 +82,7 @@ The four domain tools are the product contract. `get_bulletin_page` is a fallbac
 - A point-level `improper` prevents a `proper` beach summary.
 - `bulletin_date`, `sample_date`, `data_age_days` and `source` are always present for dated results.
 - No tool says "safe now"; use "latest published sample dated …".
+- `get_bathing_history` preserves raw point names and E. coli unit/qualifiers, distinguishes `years_without_data` from `years_unavailable`, deduplicates exact rows and exposes `unmatched_names` instead of guessing a renamed point.
 
 ## Vision fallback (PDF parser offload)
 
@@ -105,7 +106,7 @@ This is deliberate: PDF extraction failure is a data-quality state, not an invit
 
 ## Verification performed
 
-- `uv run pytest`: **64 offline tests** (provider + MCP in-memory client), no network.
+- `uv run pytest`: **71 offline tests** (provider + MCP in-memory client), no network.
 - `uv run ruff check src tests`: OK.
 - `uv run mypy src`: OK.
 - Real stdio handshake with the official `ClientSession` + `stdio_client`:
@@ -114,7 +115,7 @@ This is deliberate: PDF extraction failure is a data-quality state, not an invit
   - `get_bathing_status` for Perequê returned `proper`, 3 points and bulletin 2026-11-13;
   - stderr contained only diagnostics, no stdout protocol contamination.
 - Console entry point starts and exits cleanly on EOF.
-- Clean clone of commit a042d92: uv sync --extra dev, 64 tests, ruff and mypy passed; the console entry point exited cleanly on EOF.
+- Clean clone of commit a042d92: uv sync --extra dev, 71 tests, ruff and mypy passed; the console entry point exited cleanly on EOF.
 
 ## Known limitations
 
