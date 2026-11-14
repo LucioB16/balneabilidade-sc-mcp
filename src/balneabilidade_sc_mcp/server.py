@@ -42,7 +42,7 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
         title="Balneabilidade Santa Catarina (IMA/SC)",
         version=__version__,
         instructions=(
-            "Consulta la balneabilidade oficial de Santa Catarina (IMA/SC) por "
+            "Consulta la calidad del agua de baño publicada por IMA/SC en Santa Catarina, por "
             "playa y punto de muestreo. Los resultados son muestras fechadas, no "
             "tiempo real. Trabaja siempre por punto: una playa puede tener resultados "
             "mixtos. Si una respuesta incluye vision_fallback, el parser determinista del "
@@ -112,7 +112,7 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
     @server.tool(
         name="get_bathing_status",
         description=(
-            "Devuelve el último resultado oficial FECHADO por punto de muestreo, "
+            "Devuelve el último resultado publicado FECHADO por punto de muestreo, "
             "con fecha de muestra, fecha de boletín, frescura y resumen conservador "
             "de la playa. No es una medición en tiempo real. Si el parser del PDF "
             "queda incompleto, incluye vision_fallback para que un cliente con visión "
@@ -133,7 +133,7 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
     @server.tool(
         name="get_bathing_history",
         description=(
-            "Devuelve historial oficial fechado por playa/punto, con rango inclusivo, "
+            "Devuelve historial publicado y fechado por playa/punto, con rango inclusivo, "
             "orden descendente y paginación acotada. No inventa años sin datos."
         ),
     )

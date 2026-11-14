@@ -1,4 +1,4 @@
-"""Official CSV history adapter.
+"""CSV history adapter.
 
 The CSV has no point UUID or coordinates. Its join key is the name tuple
 (municipality, beach, point), so parsing keeps the raw names and the provider

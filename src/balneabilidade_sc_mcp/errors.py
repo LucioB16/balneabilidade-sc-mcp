@@ -1,7 +1,7 @@
 """Typed provider errors.
 
 The provider distinguishes an unavailable upstream, a changed schema, an
-empty official result and an invalid caller argument. Tool layers must not
+empty result and an invalid caller argument. Tool layers must not
 collapse these into a generic failure or a fabricated default.
 """
 
@@ -64,7 +64,7 @@ class ImaPdfParseIncomplete(ImaSchemaError):
 
 
 class ImaNotFound(ImaError):
-    """The requested point, beach or year is not present in the official catalog."""
+    """The requested point, beach or year is not present in the catalog."""
 
 
 class ImaAmbiguousQuery(ImaError):

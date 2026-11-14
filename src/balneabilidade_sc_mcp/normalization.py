@@ -1,6 +1,6 @@
 """Text, date and numeric normalization for IMA/SC data.
 
-Portuguese official labels are preserved by callers; this module only folds
+Portuguese labels are preserved by callers; this module only folds
 names for matching and parses the documented value formats.
 """
 
@@ -41,7 +41,7 @@ def fold(text: str) -> str:
 
 
 def slugify(text: str) -> str:
-    """Stable ASCII key for internal beach keys, not an official IMA code."""
+    """Stable ASCII key for internal beach keys, not an IMA code."""
 
     folded = fold(text)
     slug = re.sub(r"[^a-z0-9]+", "-", folded).strip("-")
@@ -125,7 +125,7 @@ def is_in_season(day: date) -> bool:
 
 
 def point_number(point_name: str) -> int | None:
-    """Extract the official Ponto NN number without treating it as an ID."""
+    """Extract the Ponto NN number without treating it as an ID."""
 
     match = re.search(r"Ponto\s+(\d+)", point_name, flags=re.IGNORECASE)
     return int(match.group(1)) if match else None

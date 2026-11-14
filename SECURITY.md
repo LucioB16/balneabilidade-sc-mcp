@@ -11,7 +11,7 @@ rate limiter. Do not expose it directly to the internet or to untrusted users.
 - The server reads public IMA/SC pages and PDFs. Treat all upstream content as
   untrusted input; the provider validates shapes and never executes upstream
   HTML.
-- Bathing-water results are **dated official samples**, not real-time sensing
+- Bathing-water results are **dated samples published by IMA/SC**, not real-time sensing
   and not a medical or safety guarantee. See the README caveats.
 - No IMA credentials, API keys or private data are required or accepted.
 

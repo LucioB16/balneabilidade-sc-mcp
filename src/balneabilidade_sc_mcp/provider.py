@@ -1,4 +1,4 @@
-"""Reconciliation layer: official bulletin + CSV values + per-point analyses.
+"""Reconciliation layer: bulletin + CSV values + per-point analyses.
 
 The provider never turns the map's undated CONDICAO into a current verdict.
 It joins the latest bulletin to the catalog by municipality + beach + point,

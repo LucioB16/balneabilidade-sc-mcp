@@ -40,7 +40,7 @@ tests/               offline synthetic fixtures and 71 tests (provider + MCP cli
 
 ## Source policy implemented
 
-1. **Latest official status:** newest bulletin PDF discovered from the portal index. The PDF supplies `bulletin_date`, per-point `sample_date`/verdict, collection dates and the exclusion/carry-forward footnote.
+1. **Latest published status:** newest bulletin PDF discovered from the portal index. The PDF supplies `bulletin_date`, per-point `sample_date`/verdict, collection dates and the exclusion/carry-forward footnote.
 2. **CSV enrichment:** the same sample date is joined to the CSV for the beach/year to add E. coli, rain, wind, tide and temperatures. CSV never overrides the PDF verdict; a disagreement is a warning.
 3. **Fallback without a bulletin:** latest CSV sample for the current/previous year, then `analisesPonto`, with `bulletin_unverified=true` and conservative freshness.
 4. **Map:** catalog UUIDs, names and coordinates only. Its undated `CONDICAO` is never used as a status.
@@ -64,9 +64,9 @@ tests/               offline synthetic fixtures and 71 tests (provider + MCP cli
 ## CSV history rules
 
 - `POST /relatorio/exportarCSV` with `municipioID`, `localID` and `ano`; the request is form-encoded with UTF-8 names.
-- `utf-8-sig` with BOM; LF; 13 columns; tolerant header (the official temperature columns contain a `}` typo).
+- `utf-8-sig` with BOM; LF; 13 columns; tolerant header (the temperature columns contain a `}` typo).
 - Short `Sem registros` rows are no-data markers, not samples. Empty exports are valid no-data.
-- E. coli qualifiers `<20`, `<10`, `> 24196` and `> 24196` are preserved as `(value, qualifier, raw)` plus the official unit `NMP/100mL`.
+- E. coli qualifiers `<20`, `<10`, `> 24196` and `> 24196` are preserved as `(value, qualifier, raw)` plus the unit `NMP/100mL`.
 - History records preserve catalog identity and raw CSV provenance: `municipality`, `beach`, `point_name`, `raw_point_name`, `location`, `csv_year`, raw classification and source URL.
 - History is grouped by point and sorted descending; provider sorts globally by `(sample_date, point_name)` and paginates with a non-negative integer cursor.
 - Date ranges are bounded to 10 years per query; history starts in 2003; future `to_date` is rejected.

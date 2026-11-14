@@ -68,7 +68,7 @@ The console entry point is declared as `balneabilidade-sc-mcp = "balneabilidade_
 |---|---|
 | `search_beaches` | Find monitored beaches by name, with municipality disambiguation. |
 | `get_sampling_points` | List IMA point UUIDs, locations and coordinates for a resolved beach. |
-| `get_bathing_status` | Latest **dated** official result per point plus a conservative beach summary. |
+| `get_bathing_status` | Latest **dated** published result per point plus a conservative beach summary. |
 | `get_bathing_history` | Dated CSV history, bounded range and pagination. |
 | `get_bulletin_page` | Render one bulletin PDF page as PNG for vision-capable clients; only after `vision_fallback`. |
 
@@ -109,7 +109,7 @@ This is deliberate: PDF extraction failure is a data-quality state, not an invit
 - `uv run pytest`: **71 offline tests** (provider + MCP in-memory client), no network.
 - `uv run ruff check src tests`: OK.
 - `uv run mypy src`: OK.
-- Real stdio handshake with the official `ClientSession` + `stdio_client`:
+- Real stdio handshake with the MCP `ClientSession` + `stdio_client`:
   - listed all five tools;
   - `search_beaches` returned the two Praia Brava candidates;
   - `get_bathing_status` for Perequê returned `proper`, 3 points and bulletin 2026-11-13;

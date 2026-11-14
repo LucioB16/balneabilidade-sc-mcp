@@ -1,4 +1,4 @@
-"""Latest official bulletin: index discovery, PDF extraction and parsing.
+"""Latest published bulletin: index discovery, PDF extraction and parsing.
 
 The PDF is the only source that carries a publication date, per-point sample
 dates and the bulletin's own exclusion/carry-forward context. Parsing is

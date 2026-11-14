@@ -1,6 +1,6 @@
 # Attribution and data licensing
 
-## IMA/SC official data
+## IMA/SC data
 
 The data is published by the **Instituto do Meio Ambiente de Santa Catarina
 (IMA/SC)** at <https://balneabilidade.ima.sc.gov.br/>.
@@ -12,7 +12,7 @@ redistribute IMA PDFs, CSV exports or bulk datasets; the provider fetches them
 at runtime. Any future dataset publication requires a separate, deliberate
 licensing decision.
 
-When reporting a result, preserve the official source and dates, for example:
+When reporting a result, preserve the source and dates, for example:
 "Instituto do Meio Ambiente de Santa Catarina (IMA/SC), Relatório 53/2026,
 sample 2026-11-09, <https://balneabilidade.ima.sc.gov.br/relatorio/downloadPDF/2026-11-13>."
 

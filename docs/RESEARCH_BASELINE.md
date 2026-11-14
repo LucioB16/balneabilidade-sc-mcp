@@ -6,7 +6,7 @@ Last prepared: **2026-11-14**. Read this with [`DISCOVERY_REPORT.md`](DISCOVERY_
 
 | Original lead | Verdict | Evidence |
 |---|---|---|
-| Official portal at <https://balneabilidade.ima.sc.gov.br/> | **Confirmed** | 200 HTML, 50,466 B, latest bulletin link `2026-11-13`; index lists 10 recent bulletins (2026-09-10 … 2026-11-13). |
+| Portal at <https://balneabilidade.ima.sc.gov.br/> | **Confirmed** | 200 HTML, 50,466 B, latest bulletin link `2026-11-13`; index lists 10 recent bulletins (2026-09-10 … 2026-11-13). |
 | Latest report 53/2026 dated 2026-11-13 | **Confirmed** | PDF `relatorio_n53-2026.pdf`, `DATA: 13/11/2026`, samples 09–11/11/2026, 19 pages, 317,885 B. |
 | `POST /relatorio/mapa` returns points/coordinates with top-level `CONDICAO` | **Confirmed, with corrections** | 260 points, 28 municipalities, 208 `PRÓPRIO` / 52 `IMPRÓPRIO`, UUID `CODIGO`; **no `ANALISES` in any object**; `CONDICAO` is **undated**. 85,280 B (not ~207 KB). |
 | Map had 337 points and no dated `ANALISES` (Marola issue #57, 2026-10-06) | **Confirmed at that time; count changed** | Issue #57 body: 337 points, no dated samples. Live 2026-11-14: 260 points. Do not hard-code counts. |
@@ -24,7 +24,7 @@ Last prepared: **2026-11-14**. Read this with [`DISCOVERY_REPORT.md`](DISCOVERY_
 | CSV adapter in Marola | **Not shipped** | CSV is designed in `marola-dev/marola` MIP-0056; no CSV adapter code found in `marola-app` at the pinned commit (only test fixtures under `oods/src/test/resources/ima-sc`). |
 | IMA data license | **Unresolved / no license found** | No terms/license on the portal; `robots.txt` 404; `dados.sc.gov.br` CKAN search for `balneabilidade` returned 0 datasets; MIP-0056 records the same finding. Public availability ≠ reuse license. |
 
-## Official data source
+## Data source
 
 - Portal: <https://balneabilidade.ima.sc.gov.br/>
 - Latest bulletin at check: **53/2026, 2026-11-13**, samples collected **09, 10 and 11 November 2026**.
@@ -41,7 +41,7 @@ Last prepared: **2026-11-14**. Read this with [`DISCOVERY_REPORT.md`](DISCOVERY_
 - Issue #57: <https://github.com/marola-dev/marola-app/issues/57> — created and closed 2026-10-06; documents the loss of `ANALISES` and the PDF fallback.
 - MIP-0056 (CSV/open-data design, not shipped code): <https://github.com/marola-dev/marola/blob/main/docs/MIPs/MIP-0056-oods-open-ocean-data-store.md> — confirms the CSV fields, 2003–2026 coverage, BOM, 13 columns, `<20` handling, name-based join, and the license gap.
 - Another Python client: <https://github.com/soutobias/oceanobs/blob/dev/oceanobs/water_quality/sc.py> — not used as evidence; review only if it adds a tested adapter.
-- Official Python MCP SDK: <https://github.com/modelcontextprotocol/python-sdk> and <https://py.sdk.modelcontextprotocol.io/> — v2 uses `MCPServer`; the pinned version is recorded in PROVIDER.md. Do not copy v1 `FastMCP` examples.
+- Python MCP SDK: <https://github.com/modelcontextprotocol/python-sdk> and <https://py.sdk.modelcontextprotocol.io/> — v2 uses `MCPServer`; the pinned version is recorded in PROVIDER.md. Do not copy v1 `FastMCP` examples.
 
 ## Endpoint hypotheses — corrected status
 
@@ -59,11 +59,11 @@ Last prepared: **2026-11-14**. Read this with [`DISCOVERY_REPORT.md`](DISCOVERY_
 
 ## Important unresolved considerations
 
-1. **No official API contract.** The routes are portal-internal and undocumented. The map shape changed once (ANALISES removed; point count 337 → 260), so shape validation, fixtures and fallbacks are mandatory.
+1. **No public API contract.** The routes are portal-internal and undocumented. The map shape changed once (ANALISES removed; point count 337 → 260), so shape validation, fixtures and fallbacks are mandatory.
 2. **No confirmed reuse license.** Do not redistribute IMA data/PDFs in the repository or publish a bulk dataset until a deliberate policy/decision. Attribution is required in practice; the project's own source license is also still undecided.
 3. **Staleness is not just age.** Bulletin 53 carries Ponto 83 (05/11, discarded), Ponto 94 (19/10, not collected) and Ponto 96 (26/05, not collected). A 45-day rule accepts 83 and 94. Use the bulletin's collection window/exclusion footnote, and a season-aware age threshold; never use map `CONDICAO` as current status.
 4. **Point vs beach.** Beaches have 1–10 points; 97 have exactly one. Never turn one point's proper verdict into a beach-wide guarantee. Report mixed/partial explicitly.
 5. **Name joins.** CSV and PDF have no point UUID. Use (municipality, beach, point) with accent/case folding. 88 distinct point names for 260 points; duplicate beach names exist (Praia Brava in Florianópolis and Itajaí, etc.).
 6. **PDF parsing is fragile.** Page 19 raised `PdfReadError` under the system pypdf 6.16.2; the pinned 6.21.4 extracted all pages, but the risk remains. Two headings wrap across lines, 73 headings need 3–7 lines of lookahead, and fonts/encodings vary. Reflow headings, search until the next heading, catch page-level failures, validate row/key counts, and expose partial results rather than guessing.
 7. **CORS/rate limits.** No CORS headers and `OPTIONS` timed out; no rate-limit headers/robots. Use a server-side stdio MCP, cache, low volume and backoff. Do not load-test.
-8. **HTTP/HTTPS and timezone.** HTTP 301s to HTTPS. Sample dates are official local calendar dates (`America/Sao_Paulo`); do not shift them.
+8. **HTTP/HTTPS and timezone.** HTTP 301s to HTTPS. Sample dates are local calendar dates (`America/Sao_Paulo`); do not shift them.

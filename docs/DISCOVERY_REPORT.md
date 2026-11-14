@@ -1,9 +1,13 @@
 # IMA/SC Discovery Report
 
-**Status:** discovery complete; provider, MCP server and release are documented in the linked docs.  
-**Investigation date:** 2026-11-14, 19:04–19:13 `America/Buenos_Aires` (UTC−3) = 2026-11-14T22:04–22:13Z. Official sampling dates use `America/Sao_Paulo` (also UTC−3 on this date).  
-**Repository:** <https://github.com/LucioB16/balneabilidade-sc-mcp>  
-**Bootstrap commit at investigation start:** `d1b42a4052e7eefc62d68fe4e5b77731abd83286`  
+**Status:** discovery complete; provider, MCP server and release are documented in the linked docs.
+
+**Investigation date:** 2026-11-14, 19:04–19:13 `America/Buenos_Aires` (UTC−3) = 2026-11-14T22:04–22:13Z. Sampling dates use `America/Sao_Paulo` (also UTC−3 on this date).
+
+**Repository:** <https://github.com/LucioB16/balneabilidade-sc-mcp>
+
+**Bootstrap commit at investigation start:** `d1b42a4052e7eefc62d68fe4e5b77731abd83286`
+
 **Marola reference commit inspected:** `7061a08e643c5fe05485cb2917be405f5b1ab8c4` (MIT; commit date 2026-10-20, main head at check).
 
 > All findings below are from live requests executed during this investigation or from source inspected at the pinned commit. No response was invented. HTTP calls were modest, read-only, and used a descriptive User-Agent. No load testing was performed.
@@ -16,7 +20,7 @@
 4. **CSV is the reliable history source, but it has no point IDs.** `POST /relatorio/exportarCSV` with `municipioID` (municipality **name**), `localID` (beach **name**) and `ano` returns UTF-8-BOM CSV for 2003–2026, 13 columns, `dd/MM/yyyy`, with censored values such as `<20`, `<10`, `> 24196` and `>24196`. Joining on (`Municipio`, `Balneario`, `Ponto Coleta`) matched **100%** of rows in the four municipalities tested. Point names alone are **not unique** (88 distinct names for 260 points).
 5. **Source comparison found no contradiction between CSV and PDF dated results.** For 105 points across Porto Belo, Garopaba, Itapoá and Florianópolis, the latest CSV row and the PDF row had identical sample dates and semantically identical conditions. The JSON `analisesPonto` rows matched the CSV for all 85 rows compared. The differences are in coverage and context, not in the verdicts.
 6. **The map's `CONDICAO` is not a current-status source.** It matched the PDF's latest row for all 260 points, but three of those rows are not current-valid: Ponto 83 (05/11/2026, sample **discarded** in the bulletin), Ponto 94 (19/10/2026, **not collected**) and Ponto 96 (26/05/2026, **not collected**). The map is undated, so it cannot distinguish these. A 45-day freshness rule alone would wrongly accept Ponto 83 (8 days) and Ponto 94 (25 days).
-7. **There is no official API contract, license or CORS support.** The portal sets a PHP session cookie but requires no authentication/CSRF token. JSON endpoints usually answer `text/html` even when the body is JSON; only `analisesPonto` returned `application/json`. There is no `Access-Control-Allow-Origin`, `OPTIONS` did not answer within 20 s, `HEAD /relatorio/mapa` did not answer within 30 s, `robots.txt` is 404, and no reuse license/terms were found on the portal or in the Santa Catarina open-data CKAN search. Attribution is required in practice; bulk redistribution must not be assumed licensed.
+7. **There is no public API contract, license or CORS support.** The portal sets a PHP session cookie but requires no authentication/CSRF token. JSON endpoints usually answer `text/html` even when the body is JSON; only `analisesPonto` returned `application/json`. There is no `Access-Control-Allow-Origin`, `OPTIONS` did not answer within 20 s, `HEAD /relatorio/mapa` did not answer within 30 s, `robots.txt` is 404, and no reuse license/terms were found on the portal or in the Santa Catarina open-data CKAN search. Attribution is required in practice; bulk redistribution must not be assumed licensed.
 
 **Recommended architecture:** latest-status reads the **latest bulletin PDF** (authoritative dated verdicts, collection context and exclusions), uses **CSV** for dated history and for lab values, and uses `analisesPonto` as a cheap per-point cross-check/fallback. The **map is used only for catalog, UUIDs, coordinates and names** — never as the status source. Full recommendation in section 8.
 
@@ -91,13 +95,13 @@ Representative response for Perequê Ponto 03 (2026-11-14):
 
 - Exactly 5 rows for every valid point tested (22 points across Porto Belo, Garopaba, Itapoá, Bombinhas and the three Florianópolis carry-forward points).
 - `DATA` is the **sample date**, not the bulletin date. CSVs and PDFs use the same dates for the same samples.
-- `CONDICAO` is the official rolling classification (masculine `PRÓPRIO`/`IMPRÓPRIO`); `RESULTADO` is the E. coli count as a string and may be a qualifier in CSV but was numeric in the JSON rows inspected.
+- `CONDICAO` is the IMA/SC rolling classification (masculine `PRÓPRIO`/`IMPRÓPRIO`); `RESULTADO` is the E. coli count as a string and may be a qualifier in CSV but was numeric in the JSON rows inspected.
 - It includes the **discarded** Ponto 83 sample (05/11/2026), so it is not by itself proof of what the latest bulletin published.
 - Invalid UUID → `[]`; missing `codigo` → 500 HTML with a stack trace that leaks server paths. Validate the UUID and never request without one.
 
 ### 4.3 CSV export — history and lab values
 
-Observed header (exact, including the official typo in the temperature columns):
+Observed header (exact, including the typo in the temperature columns):
 
 ```text
 Municipio,Balneario,"Ponto Coleta",Localização,Data,Hora,Vento,Maré,Chuva,"Água (ºC}","Ar (ºC}","E. coli NMP*/100ml",Condição
@@ -118,7 +122,7 @@ Confirmed semantics:
 | Method/fields | `POST` form fields `municipioID` (name), `localID` (beach name), `ano` (4-digit year). Names, not numeric IDs. |
 | Content | `text/csv; charset=UTF-8`, UTF-8 BOM `EF BB BF`, LF line endings, `Content-Disposition: attachment` with a timestamped filename. |
 | Columns | 13; the header was identical in the years checked (2003, 2010, 2024–2026), including the `}` typo in `Água (ºC}`/`Ar (ºC}`. Match tolerantly, preferably by position. |
-| Dates/times | `Data` = `dd/MM/yyyy` (sample date); `Hora` = `HH:mm`, official local time, no timezone marker. |
+| Dates/times | `Data` = `dd/MM/yyyy` (sample date); `Hora` = `HH:mm`, local time, no timezone marker. |
 | Conditions | `PRÓPRIA`/`IMPRÓPRIA` (feminine), unlike the JSON's masculine `PRÓPRIO`/`IMPRÓPRIO`. Normalize by prefix, do not compare labels literally. |
 | E. coli | Integer, or censored/qualified `<20`, `<10`, `> 24196`, `>24196` (space variant). Unit column says `NMP*/100ml`. Preserve the qualifier; do not turn `<20` into exactly 20. |
 | Missing values | Empty strings occur (e.g. 2003 temperatures). `Sem registros` rows are short (5 fields), with the year in `Data` and the marker in the last field. |
@@ -197,7 +201,7 @@ If we copy code (not just ideas), we must retain the MIT copyright notice and pe
 | Bulletin date | No | No | No | **Yes** | No |
 | Exclusion/carry-forward context | No | No | No | **Yes (prose/footnote)** | No |
 | Coverage | Current catalog | 5 most recent | 2003–2026, per beach/year | Current bulletin only | Selected point/year |
-| Best use | Catalog/IDs/coords | Cross-check/fallback | History | **Latest official status** | Diagnostics |
+| Best use | Catalog/IDs/coords | Cross-check/fallback | History | **Latest published status** | Diagnostics |
 
 Cross-checks performed:
 
@@ -261,7 +265,7 @@ A 45-day threshold (Marola's choice, reasonable for monthly off-season sampling)
 | Itapoá / Praia de Itapoá | 4 points (01–04), all `PRÓPRIO` on 10/11/2026; separate beach `Praia de Itapoá - no rio` Ponto 05 is `IMPRÓPRIO`; 148 CSV rows in 2026. | Beach vs nearby river-mouth point; don't merge. |
 | Bombinhas / Praia de Zimbros | Ponto 09 `IMPRÓPRIO` and Ponto 10 `PRÓPRIO`, both sampled 09/11/2026. Ponto 09 count 1046, Ponto 10 count 789. | **Mixed beach**; must not report whole beach proper. |
 | Duplicate beach names | `Praia Brava` in Florianópolis (Pontos 24, 25, 69, 79) and Itajaí (03, 04, 05); also `Praia dos Ingleses` (Florianópolis / São Francisco do Sul), `Praia de São Miguel` (Biguaçu / Penha), `Praia Grande` (Gov. Celso Ramos / Penha). | Municipality qualifier; ambiguous search must return candidates. |
-| Accents/case | Official names include `Perequê`, `Garopaba`, `Itapoá`, `Conceição`, `Armação`; JSON, CSV and PDF use different casing/accents. | Fold NFD accents and case; preserve raw names. |
+| Accents/case | Names include `Perequê`, `Garopaba`, `Itapoá`, `Conceição`, `Armação`; JSON, CSV and PDF use different casing/accents. | Fold NFD accents and case; preserve raw names. |
 | No data | Unknown `localID` → 137-byte header only; missing year → `Sem registros` rows; 1999 Campeche → 5 `Sem registros` rows; invalid UUID → `[]`. | Return explicit no-data/unknown, never proper. |
 | Stale/excluded | Pontos 83, 94, 96 in bulletin 53; old dates and footnote. | Staleness/exclusion regression tests. |
 | Off-season cadence | Bulletin 46/2026-09-24: 260 rows, most dates 25–28/08/2026; 10 Balneário Camboriú points 21/09/2026; monthly cadence. | Season-aware freshness tests. |
@@ -274,7 +278,7 @@ No `INDETERMINADO` appeared in current map, CSV or PDF data. The enum must still
 ### 8.1 Source precedence
 
 ```text
-Latest official status:
+Latest published status:
   1. Latest bulletin PDF (dated row + collection window + exclusions)
   2. CSV latest row for beach/year + analisesPonto (bulletin unverified; conservative age)
   3. Last good cached bulletin (dates unchanged; recompute age)
@@ -299,7 +303,7 @@ Catalog:
 - `ima/latest`: reconciliation of bulletin rows + CSV/analyses values, freshness flags, beach summary, per-point output, provenance.
 - `models`: typed dataclasses/Pydantic models; enums for classification (`proper`, `improper`, `indeterminate`, `unknown`), freshness, source.
 - `service`: use cases (`search_beaches`, `get_sampling_points`, `get_bathing_status`, `get_bathing_history`); no HTTP in tools.
-- `mcp`: official Python MCP SDK (`MCPServer` v2) over stdio; logs to stderr only; typed errors.
+- `mcp`: Python MCP SDK (`MCPServer` v2) over stdio; logs to stderr only; typed errors.
 
 ### 8.3 Join strategy
 
@@ -337,7 +341,7 @@ No database needed for MVP. A small on-disk cache (JSON/binary keyed by hash) is
 - **Politeness:** low request volume, caching, timeouts, bounded retries, backoff on 5xx, no parallel hammering, no scraping of all 260 points when one PDF covers them. Avoid `OPTIONS`/HEAD probes in production.
 - **CORS:** not available; a browser-only client cannot call IMA directly. Server-side MCP avoids this. Do not add a public proxy without auth/abuse controls.
 - **Transport:** HTTPS only (HTTP 301). The host previously had certificate/availability incidents (Marola issue #57, MIP-0056); build fallback/caching for outages.
-- **Timezone:** sample dates are official local dates (`America/Sao_Paulo`); do not shift them. Store dates as calendar dates, not instants. `fetched_at` in UTC.
+- **Timezone:** sample dates are local dates (`America/Sao_Paulo`); do not shift them. Store dates as calendar dates, not instants. `fetched_at` in UTC.
 - **Security:** the portal leaks a PHP stack trace on missing `codigo`; never echo upstream error bodies. Treat all upstream text as untrusted; no HTML rendering.
 
 ## 10. Risks and confidence
@@ -353,7 +357,7 @@ No database needed for MVP. A small on-disk cache (JSON/binary keyed by hash) is
 | Rate limiting unknown | No rate headers; no robots | Cache, low volume, backoff, no load tests | Medium |
 | Seasonality/cadence | Off-season monthly; in-season weekly; court-ordered exception | Season-aware thresholds + bulletin collection dates | High |
 | Point count/network drift | 337 vs 260; hidden/retired points possible | Refresh catalog, don't hard-code, expose unmatched | High |
-| Timezone/date ambiguity | Dates lack timezone; official local dates | Calendar dates in `America/Sao_Paulo`; no UTC conversion | High |
+| Timezone/date ambiguity | Dates lack timezone; local dates | Calendar dates in `America/Sao_Paulo`; no UTC conversion | High |
 
 Overall discovery confidence: **high** for endpoint behavior, CSV/PDF contracts, cross-source consistency, and the stale-point failure mode; **medium** for long-term API stability and for exact season-aware thresholds (need more bulletins); **unresolved** for data licensing and the project's own license.
 
@@ -407,7 +411,7 @@ The full PDF parsing check (Python 3.12 + `pypdf`): extract pages 1–18, reflow
 
 **Recommended routes and reasons**
 
-- **Latest status:** bulletin PDF (authority, dates, exclusions) + CSV (lab values) + `analisesPonto` (cross-check). This is the only combination that can distinguish "old but official monthly result" from "carried-forward/excluded result".
+- **Latest status:** bulletin PDF (authority, dates, exclusions) + CSV (lab values) + `analisesPonto` (cross-check). This is the only combination that can distinguish "old but published monthly result" from "carried-forward/excluded result".
 - **History:** CSV by municipality + beach + year, joined to catalog by names, with UUIDs from the map.
 - **Catalog:** `relatorio/mapa` plus `getLocaisByMunicipio`/`getPontosByLocal`; cache.
 - **Map `CONDICAO`:** catalog/display metadata only; never a status source.
@@ -420,7 +424,7 @@ The full PDF parsing check (Python 3.12 + `pypdf`): extract pages 1–18, reflow
 - PDF as sole source: rejected — no E. coli values/coordinates; parsing fragility; use CSV/catalog for those.
 - Historical HTML: rejected as primary — per-point HTML, no stable schema.
 
-**SDK/runtime and transport:** Python 3.12.4 with uv 0.11.28, `httpx` 0.28.1, `pypdf` 6.21.4, `tzdata`, typed dataclasses, `pytest` 8.4.2, `ruff` 0.17.5 and `mypy` 1.20.2. Official MCP Python SDK **2.3.0** was verified to expose `mcp.server.MCPServer`; it is an optional `mcp` extra over **stdio**. No remote MCP is implemented.
+**SDK/runtime and transport:** Python 3.12.4 with uv 0.11.28, `httpx` 0.28.1, `pypdf` 6.21.4, `tzdata`, typed dataclasses, `pytest` 8.4.2, `ruff` 0.17.5 and `mypy` 1.20.2. MCP Python SDK **2.3.0** was verified to expose `mcp.server.MCPServer`; it is an optional `mcp` extra over **stdio**. No remote MCP is implemented.
 
 **Remaining open questions**
 

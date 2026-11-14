@@ -1,7 +1,7 @@
 """Normalized IMA/SC models.
 
-These models deliberately separate the official classification from the
-freshness of the publication. A row can be official and outdated; it can be
+These models deliberately separate the classification from the
+freshness of the publication. A row can be published and outdated; it can be
 excluded from the latest bulletin; it can be missing. None of those states is
 silently converted to a current proper verdict.
 """

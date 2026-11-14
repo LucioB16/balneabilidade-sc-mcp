@@ -4,9 +4,9 @@
 
 ## Objective
 
-Enable a Spanish- or Portuguese-speaking agent to ask about official bathing-water quality in **Santa Catarina, Brazil**, and get:
+Enable a Spanish- or Portuguese-speaking agent to ask about bathing-water quality in **Santa Catarina, Brazil**, and get:
 
-1. the **latest officially published dated** result for a named beach and each of its IMA sampling points; and
+1. the **latest published dated** result for a named beach and each of its IMA sampling points; and
 2. dated history, with source, sample date, bulletin date and freshness.
 
 This is **not real-time sensing**. IMA samples weekly in-season and monthly off-season. A response must never say "safe right now" or imply a live measurement.
@@ -14,16 +14,16 @@ This is **not real-time sensing**. IMA samples weekly in-season and monthly off-
 ## Source semantics (non-negotiable)
 
 - Authoritative latest source: the **latest IMA bulletin PDF** discovered from the portal index, with its dated point rows, collection window and exclusion footnote.
-- History source: the official **CSV export** by municipality + beach + year.
+- History source: the **CSV export** by municipality + beach + year.
 - Per-point cross-check/fallback: `POST /relatorio/analisesPonto` (last five dated samples).
 - Catalog/IDs/coordinates: `POST /relatorio/mapa`; this route's `CONDICAO` is **undated** and is not a status source.
 - If the bulletin cannot be parsed/verified, return `bulletin_unverified=true` and a conservative status; never upgrade to a clean beach-level "proper". Include `vision_fallback` metadata and let a vision-capable client read the original pages; the server never invents the missing rows.
-- Never reclassify from E. coli counts. The official `CONDICAO` is IMA's rolling classification.
+- Never reclassify from E. coli counts. The IMA/SC `CONDICAO` is IMA's rolling classification.
 - Preserve `Indeterminado`/`unknown`; never map missing data to proper.
 
 ## Tool: `search_beaches`
 
-Resolve a free-text beach query to candidate catalog entries. Since IMA has no independent beach UUID, the stable key is derived from municipality + official beach name.
+Resolve a free-text beach query to candidate catalog entries. Since IMA has no independent beach UUID, the stable key is derived from municipality + beach name.
 
 **Input**
 
@@ -57,7 +57,7 @@ Resolve a free-text beach query to candidate catalog entries. Since IMA has no i
 
 Rules:
 
-- Fold Unicode accents/case and whitespace; preserve the official name in `beach_name`.
+- Fold Unicode accents/case and whitespace; preserve the name in `beach_name`.
 - If several municipalities match without a qualifier, return all candidates and `ambiguous=true`; never pick one arbitrarily.
 - If no match, return an empty list and a helpful warning; do not guess.
 - `beach_key` is a stable normalized identifier internal to this provider (municipality + beach), not an IMA code.
@@ -71,7 +71,7 @@ Return the IMA monitoring points for one resolved beach.
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `beach` | string | yes | Official name or `beach_key`. |
+| `beach` | string | yes | Name or `beach_key`. |
 | `municipality` | string | no | Required in practice for duplicate names. |
 | `include_hidden` | boolean | no | Default false; hidden points are exposed only with a warning. |
 
@@ -109,13 +109,13 @@ Rules:
 
 ## Tool: `get_bathing_status`
 
-Return the latest **officially published dated** result for each matching point, plus a conservative beach summary.
+Return the latest **published dated** result for each matching point, plus a conservative beach summary.
 
 **Input**
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `beach` | string | yes | Official name or `beach_key`. |
+| `beach` | string | yes | Name or `beach_key`. |
 | `municipality` | string | no | Required when the beach name is duplicated. |
 | `point_id` | string | no | Restrict to one IMA UUID; must belong to the beach. |
 
@@ -199,7 +199,7 @@ Point `classification`:
 - `proper` — IMA label `PRÓPRIO`/`PRÓPRIA` in a valid published result.
 - `improper` — IMA label `IMPRÓPRIO`/`IMPRÓPRIA`.
 - `indeterminate` — IMA label `INDETERMINADO` (not observed in the current snapshot; must be supported).
-- `unknown` — no dated official result, unparseable result, or explicit no-data. **Never** proper.
+- `unknown` — no dated result, unparseable result, or explicit no-data. **Never** proper.
 
 Point `freshness`:
 
@@ -265,13 +265,13 @@ Rules:
 
 ## Tool: `get_bathing_history`
 
-Return dated official records for one beach/point over a bounded date range.
+Return dated records for one beach/point over a bounded date range.
 
 **Input**
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `beach` | string | yes | Official name or `beach_key`. |
+| `beach` | string | yes | Name or `beach_key`. |
 | `municipality` | string | no | Required for duplicate names. |
 | `point_id` | string | no | Restrict to one IMA UUID; otherwise all points of the beach. |
 | `from_date` | ISO date | no | Inclusive; defaults to 1 January of the current year in `America/Sao_Paulo`. |
@@ -323,7 +323,7 @@ Rules:
 
 - Order descending by `sample_date`, then point; bounded `limit`; no unbounded dumps.
 - Preserve qualifiers: `<20`, `<10`, `> 24196`, `>24196`; do not coerce to a number and do not drop the record.
-- Preserve official labels and raw values; do not recompute the classification.
+- Preserve labels and raw values; do not recompute the classification.
 - Handle `Sem registros` as no data for that point/year, not as a sample.
 - Years outside 2003–2026 or with no rows: return explicit `years_without_data` and empty records, not a fabricated period.
 - A year that could not be fetched is `years_unavailable`, not `years_without_data`; the result is partial, not silently empty.

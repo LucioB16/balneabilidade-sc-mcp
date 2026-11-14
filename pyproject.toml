@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "balneabilidade-sc-mcp"
 version = "0.1.0"
-description = "Official IMA/SC bathing-water quality provider and MCP server for Santa Catarina, Brazil"
+description = "IMA/SC bathing-water quality provider and MCP server for Santa Catarina, Brazil"
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.11"
