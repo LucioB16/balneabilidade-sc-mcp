@@ -49,14 +49,14 @@ This is a **phased** project. Execute only the next incomplete phase per run, th
 - [x] Add GitHub Actions CI for reproducible format/lint/tests/build on a clean checkout; no credentials or calls to IMA required in default CI.
 - [x] Add release/version metadata and a documented installation command; evaluate optional Streamable HTTP **only as a documented future option**, not an unauthorized public deployment.
 - [x] Validate a clean clone, install, stdio handshake, discovery of all MCP tools, current + historical queries, graceful provider failure, and source/freshness communication.
-- [ ] Inspect security, public content, licenses, git status, CI results and `gh repo view` public visibility; mark verified DoD boxes, commit/push and report repository URL and SHA.
+- [x] Inspect security, public content, licenses, git status, CI results and `gh repo view` public visibility; mark verified DoD boxes, commit/push and report repository URL and SHA.
 
 ## Definition of Done — verifiable
 - [x] A NEW public GitHub repository was created at project start and its public visibility remains verified.
-- [ ] The IMA/SC discovery report documents live requests, timestamps, changing API shapes, sources and viable fallbacks.
-- [ ] A clean clone can run the MCP server locally using documented commands.
-- [ ] An MCP client can find a Santa Catarina beach and distinguish similarly named beaches or multiple sampling points.
-- [ ] `get_bathing_status` reports **latest available dated official** point-level observations with source and freshness, not an unsupported live-water claim.
-- [ ] `get_bathing_history` returns accurate, bounded, date-filtered records for monitored points and handles missing history honestly.
-- [ ] Offline automated tests and GitHub CI pass, including stale/mixed/empty/provider-outage regressions.
-- [ ] README, attribution/licensing status, limitations, release instructions and all verified `PLAN.md` checkboxes are published in the public repo.
+- [x] The IMA/SC discovery report documents live requests, timestamps, changing API shapes, sources and viable fallbacks.
+- [x] A clean clone can run the MCP server locally using documented commands.
+- [x] An MCP client can find a Santa Catarina beach and distinguish similarly named beaches or multiple sampling points.
+- [x] `get_bathing_status` reports **latest available dated official** point-level observations with source and freshness, not an unsupported live-water claim.
+- [x] `get_bathing_history` returns accurate, bounded, date-filtered records for monitored points and handles missing history honestly.
+- [x] Offline automated tests and GitHub CI pass, including stale/mixed/empty/provider-outage regressions.
+- [x] README, attribution/licensing status, limitations, release instructions and all verified `PLAN.md` checkboxes are published in the public repo.
