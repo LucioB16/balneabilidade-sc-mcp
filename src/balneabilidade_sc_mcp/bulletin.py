@@ -19,7 +19,7 @@ from typing import Protocol
 from pypdf import PdfReader
 
 from .cache import Cache, utcnow
-from .errors import ImaNotFound, ImaSchemaError
+from .errors import ImaNotFound, ImaPdfParseIncomplete, ImaSchemaError
 from .http import ImaHttpClient
 from .models import Bulletin, BulletinRow
 from .normalization import (
@@ -28,6 +28,7 @@ from .normalization import (
     parse_br_date,
     parse_collection_dates,
 )
+from .pdf_vision import RenderedPage, pdf_page_count, render_pdf_page
 
 BASE_URL = "https://balneabilidade.ima.sc.gov.br"
 INDEX_PATH = "/"
@@ -57,6 +58,12 @@ class BulletinIndex:
         if not self.dates:
             raise ImaNotFound("bulletin index contains no dates")
         return self.dates[-1]
+
+
+@dataclass(frozen=True)
+class BulletinBundle:
+    bulletin: Bulletin
+    pdf_bytes: bytes
 
 
 @dataclass(frozen=True)
@@ -322,19 +329,25 @@ class BulletinRepository:
                 await self._cache.set(cache_key, raw, content_type, PDF_TTL)
         if "application/pdf" not in content_type.lower() and not raw.startswith(b"%PDF"):
             raise ImaSchemaError("bulletin download was not a PDF")
+        source_url = BASE_URL + PDF_PATH.format(date=target.isoformat())
         try:
             extracted = self._extractor.extract(raw)
-        except Exception as exc:
-            raise ImaSchemaError("bulletin PDF could not be extracted") from exc
-        bulletin = parse_bulletin_text(
-            extracted.text,
-            source_url=BASE_URL + PDF_PATH.format(date=target.isoformat()),
-            fetched_at=fetched_at,
-            bulletin_date_hint=target,
-            known_municipalities=known_municipalities,
-            failed_pages=extracted.failed_pages,
-            stale=stale,
-        )
+            bulletin = parse_bulletin_text(
+                extracted.text,
+                source_url=source_url,
+                fetched_at=fetched_at,
+                bulletin_date_hint=target,
+                known_municipalities=known_municipalities,
+                failed_pages=extracted.failed_pages,
+                stale=stale,
+            )
+        except ImaSchemaError as exc:
+            raise ImaPdfParseIncomplete(
+                "bulletin PDF point table could not be parsed",
+                pdf_bytes=raw,
+                bulletin_date=target,
+                source_url=source_url,
+            ) from exc
         if index.stale:
             warnings.append("bulletin index was stale")
         if warnings:
@@ -353,3 +366,39 @@ class BulletinRepository:
                 warnings=(*bulletin.warnings, *warnings),
             )
         return bulletin
+
+    async def fetch_bundle(
+        self,
+        bulletin_date: date | None = None,
+        *,
+        known_municipalities: Sequence[str] = (),
+    ) -> BulletinBundle:
+        bulletin = await self.fetch(
+            bulletin_date, known_municipalities=known_municipalities
+        )
+        raw = await self.pdf_bytes(bulletin.bulletin_date)
+        return BulletinBundle(bulletin=bulletin, pdf_bytes=raw)
+
+    async def pdf_bytes(self, bulletin_date: date | None = None) -> bytes:
+        target = bulletin_date or await self.latest_date()
+        cache_key = f"bulletin:pdf:{target.isoformat()}"
+        cached = await self._cache.get(cache_key, allow_stale=True)
+        if cached is not None:
+            return cached.data
+        response = await self._http.get(PDF_PATH.format(date=target.isoformat()))
+        if "application/pdf" not in response.content_type.lower() and not response.content.startswith(b"%PDF"):
+            raise ImaSchemaError("bulletin download was not a PDF")
+        await self._cache.set(cache_key, response.content, response.content_type, PDF_TTL)
+        return response.content
+
+    async def page_count(self, bulletin_date: date | None = None) -> int:
+        return pdf_page_count(await self.pdf_bytes(bulletin_date))
+
+    async def render_page(
+        self,
+        bulletin_date: date | None,
+        page_number: int,
+        *,
+        dpi: int = 120,
+    ) -> RenderedPage:
+        return render_pdf_page(await self.pdf_bytes(bulletin_date), page_number, dpi=dpi)

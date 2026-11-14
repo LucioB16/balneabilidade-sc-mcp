@@ -226,6 +226,16 @@ class PointStatus:
 
 
 @dataclass(frozen=True)
+class VisionFallback:
+    reason: str
+    bulletin_date: date | None
+    source_url: str
+    page_count: int
+    pages_available: tuple[int, ...]
+    instructions: str
+
+
+@dataclass(frozen=True)
 class BeachSummary:
     status: BeachStatus
     points_total: int
@@ -246,6 +256,7 @@ class BeachStatusResult:
     bulletin_unverified: bool
     latest_source: Source | None
     fetched_at: datetime
+    vision_fallback: VisionFallback | None = None
     warnings: tuple[str, ...] = ()
 
 

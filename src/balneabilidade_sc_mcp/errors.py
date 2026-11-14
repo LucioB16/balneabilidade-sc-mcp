@@ -8,6 +8,7 @@ collapse these into a generic failure or a fabricated default.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from datetime import date
 
 
 class ImaError(Exception):
@@ -39,6 +40,27 @@ class ImaResponseTooLarge(ImaError):
 
 class ImaSchemaError(ImaError):
     """The response was reachable but did not have the expected shape."""
+
+
+class ImaPdfParseIncomplete(ImaSchemaError):
+    """The PDF was downloaded but its point table could not be trusted.
+
+    The raw bytes are retained so a vision-capable client can read the original
+    pages instead of receiving fabricated structured rows.
+    """
+
+    def __init__(
+        self,
+        message: str,
+        *,
+        pdf_bytes: bytes,
+        bulletin_date: date | None,
+        source_url: str,
+    ) -> None:
+        self.pdf_bytes = pdf_bytes
+        self.bulletin_date = bulletin_date
+        self.source_url = source_url
+        super().__init__(message)
 
 
 class ImaNotFound(ImaError):

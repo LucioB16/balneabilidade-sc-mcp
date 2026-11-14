@@ -1,6 +1,6 @@
 # IMA/SC provider — Phase 2 implementation
 
-**Status:** normalized provider implemented and tested offline. The MCP server is **not implemented yet** (Phase 3). This document records the implementation choices and the live verification performed on 2026-11-14.
+**Status:** normalized provider implemented and tested offline; the local stdio MCP server is documented separately in [MCP_SERVER.md](MCP_SERVER.md). This document records the provider choices and live verification performed on 2026-11-14.
 
 Related: [Discovery report](DISCOVERY_REPORT.md) · [Product contract](PRODUCT_CONTRACT.md) · [Plan](../PLAN.md)
 
@@ -12,13 +12,14 @@ Related: [Discovery report](DISCOVERY_REPORT.md) · [Product contract](PRODUCT_C
 | uv | 0.11.28 | Lockfile committed as `uv.lock`. |
 | httpx | 0.28.1 | Async client with injectable transport for tests. |
 | pypdf | 6.21.4 | PDF extraction; page-level tolerance retained. |
+| PyMuPDF | 1.28.2 | Render bulletin pages to PNG for the vision fallback. |
 | tzdata | 2026.6 | Required for `America/Sao_Paulo` on Windows. |
 | pytest | 8.4.2 | Offline unit/integration tests. |
 | ruff | 0.17.5 | Lint + format checks. |
 | mypy | 1.20.2 | Static check of `src`. |
-| mcp | 2.3.0 | Verified `mcp.server.MCPServer` exists; installed only with the `mcp` extra in Phase 3. |
+| mcp | 2.3.0 | Verified `mcp.server.MCPServer`; available through the `mcp` extra (and dev for tests). |
 
-The MCP SDK is intentionally **not** a default dependency: Phase 2 is a provider, and Phase 3 will add the stdio server and its integration test. The `mcp>=2.3,<3` extra records the verified v2 API and avoids v1 `FastMCP` examples.
+The MCP SDK is not a default dependency: the provider can be used without it. The `mcp>=2.3,<3` extra installs the local stdio server, documented in [MCP_SERVER.md](MCP_SERVER.md); this avoids v1 `FastMCP` examples.
 
 ## Package layout
 
@@ -34,7 +35,7 @@ src/balneabilidade_sc_mcp/
   history.py         /relatorio/exportarCSV POST + CSV parsing
   analyses.py        /relatorio/analisesPonto last-five adapter
   provider.py        source reconciliation, freshness, beach summary, history pagination
-tests/               offline synthetic fixtures and 49 tests
+tests/               offline synthetic fixtures and 63 tests (provider + MCP client)
 ```
 
 ## Source policy implemented
@@ -68,6 +69,13 @@ tests/               offline synthetic fixtures and 49 tests
 - E. coli qualifiers `<20`, `<10`, `> 24196` and `> 24196` are preserved as `(value, qualifier, raw)`.
 - History is grouped by point and sorted descending; provider sorts globally by `(sample_date, point_name)` and paginates with a non-negative integer cursor.
 - Date ranges are bounded to 10 years per query; history starts in 2003; future `to_date` is rejected.
+
+## Vision fallback
+
+- The deterministic pypdf parser remains primary.
+- If more than max(2, 5%) of catalog points are missing from the parsed table, or any heading has no parseable date/verdict, the provider attaches `vision_fallback` metadata (page count and instructions).
+- `get_bulletin_page` renders one page as PNG through PyMuPDF. It does not call an LLM and does not return invented structured rows; the client model decides whether it has vision.
+- The status remains `bulletin_unverified=true` or `partial`/`unknown`; a vision-capable client gains the original page but the server never upgrades the result to a clean proper summary.
 
 ## Cache policy
 
@@ -134,10 +142,10 @@ With the default cache and a fixed `today=2026-11-14`:
 - History for Perequê 2026 returned descending dated records with pagination.
 - Clean-clone validation: a fresh clone of commit a58b9c4 completed uv sync --extra dev, all 49 offline tests, ruff and mypy, and a live provider query returned proper for the 3 Perequê points.
 
-## Known limitations and Phase 3 work
+## Known limitations and next phases
 
 - The PDF parser depends on pypdf text extraction. The live 2026-11-13 PDF needs lookahead up to 7 lines per heading; a 2-line window yields only **187/260 rows**. The implementation searches forward until the next heading, so wrapped addresses do not lose the verdict.
 - pypdf 6.16.2 failed on page 19 of this PDF; pypdf 6.21.4 extracts all pages. Page-level tolerance remains because future PDFs can regress.
 - No real IMA PDF/CSV is committed: fixtures are synthetic and only reproduce the shapes. Data reuse/licensing remains unresolved; see the discovery report.
-- The MCP server, tool schemas, and stdio diagnostics are Phase 3. This phase does not expose any network service or MCP endpoint.
+- The local stdio MCP server is implemented; remote HTTP transport, authentication and abuse controls are not. A hosted deployment would require a separate security/authorization phase.
 - The provider's public API is Python classes/async methods, not yet a stable MCP contract.

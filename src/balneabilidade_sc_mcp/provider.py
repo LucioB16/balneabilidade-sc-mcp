@@ -27,6 +27,7 @@ from .errors import (
     ImaError,
     ImaInvalidArgument,
     ImaNoData,
+    ImaPdfParseIncomplete,
     ImaProviderUnavailable,
 )
 from .history import CsvHistoryRepository
@@ -51,8 +52,10 @@ from .models import (
     HistoryResult,
     PointStatus,
     Source,
+    VisionFallback,
 )
 from .normalization import fold, is_in_season, point_number
+from .pdf_vision import RenderedPage, pdf_page_count
 
 SAO_PAULO = ZoneInfo("America/Sao_Paulo")
 IN_SEASON_WINDOW_DAYS = 10
@@ -136,8 +139,26 @@ class ImaProvider:
         points = self._select_points(resolved, point_id)
         warnings: list[str] = list(catalog.warnings)
         bulletin: Bulletin | None = None
+        vision_fallback: VisionFallback | None = None
         try:
-            bulletin = await self._bulletin.fetch(known_municipalities=catalog.municipalities)
+            bundle = await self._bulletin.fetch_bundle(
+                known_municipalities=catalog.municipalities
+            )
+            bulletin = bundle.bulletin
+            if self._bulletin_incomplete(bulletin, catalog):
+                vision_fallback = self._vision_fallback(
+                    bulletin,
+                    "deterministic parser produced an incomplete point table",
+                    bundle.pdf_bytes,
+                )
+        except ImaPdfParseIncomplete as exc:
+            vision_fallback = self._vision_fallback_from_bytes(
+                exc.pdf_bytes,
+                reason="deterministic parser could not parse the bulletin point table",
+                bulletin_date=exc.bulletin_date,
+                source_url=exc.source_url,
+            )
+            warnings.append(f"bulletin PDF needs vision fallback: {exc}")
         except ImaError as exc:
             warnings.append(f"latest bulletin unavailable: {exc}")
         if bulletin is not None:
@@ -163,7 +184,78 @@ class ImaProvider:
             bulletin_unverified=bulletin_unverified,
             latest_source=latest_source,
             fetched_at=self._clock(),
+            vision_fallback=vision_fallback,
             warnings=tuple(dict.fromkeys(warnings)),
+        )
+
+    async def get_bulletin_page(
+        self,
+        bulletin_date: date | None = None,
+        page: int = 1,
+        dpi: int = 120,
+    ) -> RenderedPage:
+        """Render one bulletin page for a vision-capable client.
+
+        This is the fallback path; callers should first prefer the structured
+        provider result and use images only when the PDF parser is incomplete.
+        """
+
+        if page < 1:
+            raise ImaInvalidArgument("page must be at least 1")
+        return await self._bulletin.render_page(bulletin_date, page, dpi=dpi)
+
+    def _bulletin_incomplete(self, bulletin: Bulletin, catalog: Catalog) -> bool:
+        if any("no parseable" in warning for warning in bulletin.warnings):
+            return True
+        by_three: dict[tuple[str, str, str], BulletinRow] = {}
+        by_two: dict[tuple[str, str], list[BulletinRow]] = {}
+        for row in bulletin.rows:
+            by_two.setdefault((fold(row.beach), fold(row.point_name)), []).append(row)
+            if row.municipality:
+                by_three[(fold(row.municipality), fold(row.beach), fold(row.point_name))] = row
+        matched = sum(1 for point in catalog.points if _find_row(point, by_three, by_two)[0])
+        allowed_missing = max(2, int(len(catalog.points) * 0.05))
+        return matched < max(1, len(catalog.points) - allowed_missing)
+
+    def _vision_fallback(
+        self,
+        bulletin: Bulletin,
+        reason: str,
+        pdf_bytes: bytes,
+    ) -> VisionFallback | None:
+        return self._vision_fallback_from_bytes(
+            pdf_bytes,
+            reason=reason,
+            bulletin_date=bulletin.bulletin_date,
+            source_url=bulletin.source_url,
+        )
+
+    def _vision_fallback_from_bytes(
+        self,
+        pdf_bytes: bytes,
+        *,
+        reason: str,
+        bulletin_date: date | None,
+        source_url: str,
+    ) -> VisionFallback | None:
+        try:
+            count = pdf_page_count(pdf_bytes)
+        except ImaError:
+            return None
+        if count < 1:
+            return None
+        return VisionFallback(
+            reason=reason,
+            bulletin_date=bulletin_date,
+            source_url=source_url,
+            page_count=count,
+            pages_available=tuple(range(1, count + 1)),
+            instructions=(
+                "El parser determinista no pudo validar toda la tabla. Si tu cliente "
+                "tiene visión, llama a get_bulletin_page(bulletin_date, page) para "
+                "obtener cada página como imagen y lee la tabla. No inventes filas; "
+                "marca como no verificadas las páginas que no puedas leer."
+            ),
         )
 
     async def get_bathing_history(

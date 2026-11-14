@@ -27,12 +27,13 @@ This is a **phased** project. Execute only the next incomplete phase per run, th
 - [x] Implement latest-sample retrieval with discovered source priority (JSON with dates when available, validated CSV or PDF when needed); join points conservatively and expose unmatched observations.
 - [x] Write fixture-driven unit tests for current and historical feed shapes, empty arrays, UUID IDs, renamed beaches, mixed results, stale data, missing dates, Unicode, timezones and provider failures.
 - [x] Run lint, type checks where configured and full offline test suite; update docs/plan and commit/push verified milestones and phase checkpoint. **STOP.**
+- [x] Add opt-in vision fallback: keep deterministic parsing primary, render bulletin pages as PNG only when completeness checks fail, and expose the fallback through the provider/MCP without fabricating rows.
 
 ## Phase 3 — MCP tools and local client integration
-- [ ] Implement `search_beaches` and `get_sampling_points` with unambiguous matching, useful candidate lists and stable structured outputs.
-- [ ] Implement `get_bathing_status` returning the latest dated official verdict **for each point**, explicit beach summary status (including mixed/partial/unknown), sample date, bulletin date, source and freshness fields.
-- [ ] Expose MCP via local stdio first using the verified official SDK; no stdout logging; schemas and error responses are discoverable and documented.
-- [ ] Test tools with an actual MCP client/inspector, including Spanish and Portuguese queries, ambiguous names and multi-point beaches, provider outage and no-data scenarios.
+- [x] Implement `search_beaches` and `get_sampling_points` with unambiguous matching, useful candidate lists and stable structured outputs.
+- [x] Implement `get_bathing_status` returning the latest dated official verdict **for each point**, explicit beach summary status (including mixed/partial/unknown), sample date, bulletin date, source and freshness fields.
+- [x] Expose MCP via local stdio first using the verified official SDK; no stdout logging; schemas and error responses are discoverable and documented.
+- [x] Test tools with an actual MCP client/inspector, including Spanish and Portuguese queries, ambiguous names and multi-point beaches, provider outage and no-data scenarios.
 - [ ] Update README with verified stdio setup and at least one working client configuration; run tests/lint; commit/push and stop.
 
 ## Phase 4 — Historic observations and comparison

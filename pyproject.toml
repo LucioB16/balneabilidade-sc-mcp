@@ -11,13 +11,18 @@ requires-python = ">=3.11"
 authors = [{ name = "Lucio Bottacin" }]
 dependencies = [
     "httpx>=0.27,<1",
+    "pymupdf>=1.24,<2",
     "pypdf>=5.1,<7",
     "tzdata>=2025.2",
 ]
 
+[project.scripts]
+balneabilidade-sc-mcp = "balneabilidade_sc_mcp.server:main"
+
 [project.optional-dependencies]
 mcp = ["mcp>=2.3,<3"]
 dev = [
+    "mcp>=2.3,<3",
     "mypy>=1.13,<2",
     "pytest>=8.3,<9",
     "pytest-asyncio>=0.24,<2",

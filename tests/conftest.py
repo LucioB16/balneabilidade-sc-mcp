@@ -7,7 +7,7 @@ import httpx
 import pytest
 
 from balneabilidade_sc_mcp.analyses import ANALYSES_URL, parse_analyses
-from balneabilidade_sc_mcp.bulletin import parse_bulletin_text
+from balneabilidade_sc_mcp.bulletin import BulletinBundle, parse_bulletin_text
 from balneabilidade_sc_mcp.cache import MemoryCache
 from balneabilidade_sc_mcp.catalog import parse_catalog
 from balneabilidade_sc_mcp.history import CSV_URL, parse_csv
@@ -124,6 +124,25 @@ class FakeBulletinRepository:
         if self.bulletin is None:
             raise RuntimeError("fake bulletin not configured")
         return self.bulletin
+
+    async def fetch_bundle(
+        self, bulletin_date: date | None = None, *, known_municipalities=()
+    ) -> BulletinBundle:
+        bulletin = await self.fetch(bulletin_date, known_municipalities=known_municipalities)
+        return BulletinBundle(bulletin=bulletin, pdf_bytes=read_fixture("synthetic_bulletin.pdf"))
+
+    async def pdf_bytes(self, bulletin_date: date | None = None) -> bytes:
+        return read_fixture("synthetic_bulletin.pdf")
+
+    async def page_count(self, bulletin_date: date | None = None) -> int:
+        from balneabilidade_sc_mcp.pdf_vision import pdf_page_count
+
+        return pdf_page_count(read_fixture("synthetic_bulletin.pdf"))
+
+    async def render_page(self, bulletin_date: date | None, page_number: int, *, dpi: int = 120):
+        from balneabilidade_sc_mcp.pdf_vision import render_pdf_page
+
+        return render_pdf_page(read_fixture("synthetic_bulletin.pdf"), page_number, dpi=dpi)
 
     async def latest_date(self) -> date:
         if self.error is not None:

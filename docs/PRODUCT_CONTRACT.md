@@ -1,6 +1,6 @@
 # MCP product contract (evidence-based; provider implemented in Phase 2)
 
-**Status:** design contract grounded in the 2026-11-14 live discovery in [`DISCOVERY_REPORT.md`](DISCOVERY_REPORT.md). The normalized provider behind this contract is implemented and offline-tested in Phase 2 ([provider notes](PROVIDER.md)). The MCP server is **not implemented yet** (Phase 3).
+**Status:** design contract grounded in the 2026-11-14 live discovery in [`DISCOVERY_REPORT.md`](DISCOVERY_REPORT.md). The normalized provider is implemented and offline-tested (Phase 2, [provider notes](PROVIDER.md)); the local stdio MCP tools are implemented and client-tested (Phase 3, [server notes](MCP_SERVER.md)).
 
 ## Objective
 
@@ -17,7 +17,7 @@ This is **not real-time sensing**. IMA samples weekly in-season and monthly off-
 - History source: the official **CSV export** by municipality + beach + year.
 - Per-point cross-check/fallback: `POST /relatorio/analisesPonto` (last five dated samples).
 - Catalog/IDs/coordinates: `POST /relatorio/mapa`; this route's `CONDICAO` is **undated** and is not a status source.
-- If the bulletin cannot be parsed/verified, return `bulletin_unverified=true` and a conservative status; never upgrade to a clean beach-level "proper".
+- If the bulletin cannot be parsed/verified, return `bulletin_unverified=true` and a conservative status; never upgrade to a clean beach-level "proper". Include `vision_fallback` metadata and let a vision-capable client read the original pages; the server never invents the missing rows.
 - Never reclassify from E. coli counts. The official `CONDICAO` is IMA's rolling classification.
 - Preserve `Indeterminado`/`unknown`; never map missing data to proper.
 
@@ -190,6 +190,8 @@ Return the latest **officially published dated** result for each matching point,
 }
 ```
 
+When the deterministic bulletin parser is incomplete, the result also carries `vision_fallback` with `reason`, `bulletin_date`, `source_url`, `page_count`, `pages_available` and instructions. It does not change the status by itself.
+
 ### Status enums
 
 Point `classification`:
@@ -235,6 +237,31 @@ Rules:
 - 45 days alone is insufficient: Ponto 83 (8 days, discarded) and Ponto 94 (25 days, not collected) would pass. See discovery section 6.
 - The provider distinguishes a **discarded** sample (`freshness=excluded`, classification withheld as unknown, raw label preserved) from a **not-collected/carried** point (`freshness=carried_forward`, dated verdict visible with an age warning). It parses the bulletin footnote and the stated collection dates rather than inferring from age alone.
 - When the bulletin is unavailable, use `bulletin_unverified=true` and a conservative window; never use the map `CONDICAO`.
+
+## Tool: `get_bulletin_page` (vision fallback)
+
+Only for a vision-capable client when `get_bathing_status` returns a non-null `vision_fallback`. The deterministic parser remains primary; this tool renders the original PDF page instead of fabricating missing rows.
+
+**Input**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `page` | integer | no | 1-based page number; default 1. |
+| `bulletin_date` | ISO date | no | Defaults to the latest bulletin. |
+| `dpi` | integer | no | 72–200; default 120. |
+
+**Output**
+
+- A text block with page metadata (page, page count, source, date).
+- An `image/png` content block with the rendered page.
+- No structured point rows: the client model reads the image and must mark unreadable pages as unverified.
+
+Rules:
+
+- `vision_fallback` is present when more than `max(2, 5%)` of catalog points are missing from the parsed table, or a heading has no parseable date/verdict.
+- The status result stays conservative (`bulletin_unverified=true` or `partial`/`unknown`) even if a vision model might read the page.
+- Do not use `get_bulletin_page` as a primary parsing path or send image content to a model without vision.
+- The server does not call an LLM; the client decides whether to use vision.
 
 ## Tool: `get_bathing_history`
 

@@ -438,4 +438,6 @@ The full PDF parsing check (Python 3.12 + `pypdf`): extract pages 1–18, reflow
 
 ## 13. Phase 2 implementation status
 
-The normalized provider is implemented in `src/balneabilidade_sc_mcp/` and documented in [`PROVIDER.md`](PROVIDER.md). It parses the live 2026-11-13 PDF to 260 rows, distinguishes discarded Ponto 83 from carried Pontos 94/96, enriches samples with CSV values, and keeps the map out of the status path. Offline tests use synthetic fixtures and never call IMA. The MCP server is still Phase 3.
+The normalized provider is implemented in `src/balneabilidade_sc_mcp/` and documented in [`PROVIDER.md`](PROVIDER.md). It parses the live 2026-11-13 PDF to 260 rows, distinguishes discarded Ponto 83 from carried Pontos 94/96, enriches samples with CSV values, and keeps the map out of the status path. Offline tests use synthetic fixtures and never call IMA.
+
+The Phase 3 local stdio MCP server is documented in [`MCP_SERVER.md`](MCP_SERVER.md). Its deterministic parser remains primary; if the point table is incomplete, it returns `vision_fallback` metadata and `get_bulletin_page` renders the original PDF page as PNG for a vision-capable client. The server does not call an LLM and never fabricates missing rows.
