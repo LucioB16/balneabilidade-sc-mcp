@@ -34,7 +34,7 @@ This is a **phased** project. Execute only the next incomplete phase per run, th
 - [x] Implement `get_bathing_status` returning the latest dated official verdict **for each point**, explicit beach summary status (including mixed/partial/unknown), sample date, bulletin date, source and freshness fields.
 - [x] Expose MCP via local stdio first using the verified official SDK; no stdout logging; schemas and error responses are discoverable and documented.
 - [x] Test tools with an actual MCP client/inspector, including Spanish and Portuguese queries, ambiguous names and multi-point beaches, provider outage and no-data scenarios.
-- [ ] Update README with verified stdio setup and at least one working client configuration; run tests/lint; commit/push and stop.
+- [x] Update README with verified stdio setup and at least one working client configuration; run tests/lint; commit/push and stop.
 
 ## Phase 4 — Historic observations and comparison
 - [ ] Implement `get_bathing_history` over official dated records with municipality/beach/point filters, inclusive date range, descending ordering and bounded pagination.

@@ -103,6 +103,7 @@ This is deliberate: PDF extraction failure is a data-quality state, not an invit
   - `get_bathing_status` for Perequê returned `proper`, 3 points and bulletin 2026-11-13;
   - stderr contained only diagnostics, no stdout protocol contamination.
 - Console entry point starts and exits cleanly on EOF.
+- Clean clone of commit a042d92: uv sync --extra dev, 63 tests, ruff and mypy passed; the console entry point exited cleanly on EOF.
 
 ## Known limitations
 
