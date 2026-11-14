@@ -1,19 +1,46 @@
 # Balneabilidade SC MCP
 
-**Project bootstrap — server not implemented yet.** Public GitHub repository creation and IMA/SC endpoint discovery are the first tasks described in [`PLAN.md`](PLAN.md).
+**Status: Phase 1 complete — public repository created and IMA/SC discovery documented. The MCP server is not implemented yet.**
 
-Goal: a small MCP server that lets an AI agent retrieve the **latest published official bathing-water assessment** and **sampling history** for beaches in Santa Catarina, Brazil. It should resolve municipality, beach and monitoring point, and say exactly **when** the reported condition was measured. Official sampling reports are not real-time guarantees.
+Repository: <https://github.com/LucioB16/balneabilidade-sc-mcp>
 
-Data provider: [Instituto do Meio Ambiente de Santa Catarina (IMA/SC)](https://balneabilidade.ima.sc.gov.br/).
+Goal: a small Model Context Protocol server that lets an AI agent retrieve the **latest published official bathing-water assessment** and **sampling history** for beaches in Santa Catarina, Brazil. It resolves municipality, beach and monitoring point, and says exactly **when** the reported condition was sampled and published. Official IMA sampling is not a real-time measurement.
 
-Technical inspiration: [marola-dev/marola-app](https://github.com/marola-dev/marola-app). The new project will be scoped to Santa Catarina water quality, not Marola's other marine features. Review licenses and source-data terms before reusing code or redistributing datasets.
+## What discovery established (2026-11-14)
 
-## For the coding agent
+- `POST /relatorio/mapa` returns the 260-point catalog with UUIDs and coordinates, but **no dated samples** and an **undated** `CONDICAO`. It is not a current-status source.
+- `POST /relatorio/analisesPonto` returns the last five **dated** analyses per point. It is undocumented and includes samples that the bulletin later discards.
+- The **latest bulletin PDF** (currently 53/2026, 2026-11-13) is the authoritative dated publication. It lists 257 current points plus 3 carried/excluded rows (Pontos 83, 94 and 96 in Florianópolis). A 45-day age rule alone would wrongly accept two of them.
+- `POST /relatorio/exportarCSV` provides 2003–2026 history with lab values, but no point UUID or coordinates; joins must use municipality + beach + point names.
+- CSV and PDF dated results matched for all 105 points compared across four municipalities; JSON analyses matched CSV for all 85 rows compared.
 
-Read [`AGENTS.md`](AGENTS.md) and execute the **next incomplete phase** of [`PLAN.md`](PLAN.md). Phase 1 must first create and verify a **public GitHub repository**, then conduct a reproducible integration discovery, and finally stop before implementation for approval.
+## Documentation
 
-Research baseline: [`docs/RESEARCH_BASELINE.md`](docs/RESEARCH_BASELINE.md)  
-Evidence report: [`docs/DISCOVERY_REPORT.md`](docs/DISCOVERY_REPORT.md)  
-Tool design: [`docs/PRODUCT_CONTRACT.md`](docs/PRODUCT_CONTRACT.md)
+- [Execution plan](PLAN.md)
+- [Discovery report with live evidence, comparisons and recommended architecture](docs/DISCOVERY_REPORT.md)
+- [MCP product contract (schemas and status semantics)](docs/PRODUCT_CONTRACT.md)
+- [Research baseline: leads vs verified evidence](docs/RESEARCH_BASELINE.md)
 
-Install and client configuration instructions will be added once tested; no working MCP server is claimed at this stage.
+## Reproduce the discovery
+
+A read-only, stdlib-only probe (a handful of requests; not part of CI) checks the catalog, dated analyses, CSV export and latest bulletin PDF:
+
+```bash
+python scripts/discovery_probe.py
+```
+
+## Important caveats
+
+- **Not real-time.** "Proper" means the latest official dated sample/classification, not a guarantee for today. Rain, runoff and other conditions can change water quality quickly.
+- **Point-level truth.** A beach may have mixed results. 97 beaches have one point; others have up to 10. Never convert one point's verdict into a beach-wide guarantee.
+- **No confirmed data license.** No license/terms were found on the IMA portal or in the Santa Catarina open-data catalog. This repository does not redistribute IMA datasets or PDFs. Do not assume the data is open-licensed; see the discovery report.
+- **No project license yet.** A public repository is not automatically open source. Licensing is a Phase 5 decision.
+- **No server claimed yet.** Installation, MCP configuration and tool examples will be added only after implementation and testing (Phases 2–3).
+
+## Reference implementation
+
+[marola-dev/marola-app](https://github.com/marola-dev/marola-app) (MIT) is a reference, not a dependency. Its IMA JSON adapter expected `ANALISES`, which the feed no longer carries; its PDF fallback and name-join approach were reviewed at commit `7061a08e`. Any copied code must preserve the MIT notice and attribution.
+
+## Next step
+
+Phase 2: build the normalized IMA provider (catalog, bulletin PDF parsing, CSV history, freshness/exclusion handling) with fixture-driven offline tests. **Awaiting user approval before starting.**
