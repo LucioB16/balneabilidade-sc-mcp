@@ -226,4 +226,3 @@ def find_point(beach: CatalogBeach, point_id: str | None) -> CatalogPoint:
         if point.point_id == point_id:
             return point
     raise ImaNotFound(f"point {point_id!r} does not belong to {beach.name!r}")
-

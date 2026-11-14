@@ -14,9 +14,7 @@ async def test_retries_server_error_then_succeeds() -> None:
             return httpx.Response(503, content=b"busy")
         return httpx.Response(200, headers={"content-type": "text/html"}, content=b"[]")
 
-    client = ImaHttpClient(
-        transport=httpx.MockTransport(handler), retries=1, retry_delay_seconds=0
-    )
+    client = ImaHttpClient(transport=httpx.MockTransport(handler), retries=1, retry_delay_seconds=0)
     response = await client.get("/relatorio/mapa")
     assert response.status_code == 200
     assert response.content == b"[]"
@@ -25,9 +23,7 @@ async def test_retries_server_error_then_succeeds() -> None:
 
 
 async def test_404_is_typed_not_found() -> None:
-    client = ImaHttpClient(
-        transport=httpx.MockTransport(lambda request: httpx.Response(404)), retries=0
-    )
+    client = ImaHttpClient(transport=httpx.MockTransport(lambda request: httpx.Response(404)), retries=0)
     with pytest.raises(ImaNotFound):
         await client.get("/relatorio/downloadPDF/2026-11-12")
 
@@ -62,9 +58,7 @@ async def test_transport_error_retries_and_raises_network_error() -> None:
         calls.append(request)
         raise httpx.ConnectError("boom")
 
-    client = ImaHttpClient(
-        transport=httpx.MockTransport(handler), retries=1, retry_delay_seconds=0
-    )
+    client = ImaHttpClient(transport=httpx.MockTransport(handler), retries=1, retry_delay_seconds=0)
     with pytest.raises(ImaNetworkError):
         await client.get("/x")
     assert len(calls) == 2

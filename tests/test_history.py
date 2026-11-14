@@ -51,9 +51,7 @@ async def test_csv_repository_posts_form_and_caches() -> None:
 
     def handler(request: httpx.Request) -> httpx.Response:
         calls.append(request)
-        return httpx.Response(
-            200, headers={"content-type": "text/csv; charset=UTF-8"}, content=_payload()
-        )
+        return httpx.Response(200, headers={"content-type": "text/csv; charset=UTF-8"}, content=_payload())
 
     http = ImaHttpClient(transport=httpx.MockTransport(handler))
     cache = MemoryCache()

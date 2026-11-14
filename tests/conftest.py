@@ -153,9 +153,12 @@ class FakeBulletinRepository:
 
 
 class FakeHistoryRepository:
-    def __init__(self, exports: dict[tuple[str, str, int], CsvExport] | None = None,
-                 error: Exception | None = None,
-                 error_years: dict[int, Exception] | None = None) -> None:
+    def __init__(
+        self,
+        exports: dict[tuple[str, str, int], CsvExport] | None = None,
+        error: Exception | None = None,
+        error_years: dict[int, Exception] | None = None,
+    ) -> None:
         self.exports = exports or {}
         self.error = error
         self.error_years = error_years or {}
@@ -165,9 +168,7 @@ class FakeHistoryRepository:
             raise self.error
         if year in self.error_years:
             raise self.error_years[year]
-        return self.exports.get(
-            (municipality, beach, year), empty_csv_export(municipality, beach, year)
-        )
+        return self.exports.get((municipality, beach, year), empty_csv_export(municipality, beach, year))
 
 
 class FakeAnalysesRepository:

@@ -43,9 +43,7 @@ class CacheEntry:
 class Cache(Protocol):
     async def get(self, key: str, *, allow_stale: bool = False) -> CacheEntry | None: ...
 
-    async def set(
-        self, key: str, data: bytes, content_type: str, ttl: timedelta
-    ) -> CacheEntry: ...
+    async def set(self, key: str, data: bytes, content_type: str, ttl: timedelta) -> CacheEntry: ...
 
     async def delete(self, key: str) -> None: ...
 
@@ -63,9 +61,7 @@ class MemoryCache:
             return None
         return entry
 
-    async def set(
-        self, key: str, data: bytes, content_type: str, ttl: timedelta
-    ) -> CacheEntry:
+    async def set(self, key: str, data: bytes, content_type: str, ttl: timedelta) -> CacheEntry:
         now = self._clock()
         entry = CacheEntry(
             key=key,
@@ -119,9 +115,7 @@ class FileCache:
             expires_at=expires_at,
         )
 
-    async def set(
-        self, key: str, data: bytes, content_type: str, ttl: timedelta
-    ) -> CacheEntry:
+    async def set(self, key: str, data: bytes, content_type: str, ttl: timedelta) -> CacheEntry:
         now = self._clock()
         entry = CacheEntry(
             key=key,
@@ -139,9 +133,7 @@ class FileCache:
             "expires_at": entry.expires_at.isoformat(),
             "size": len(data),
         }
-        self._atomic_write(
-            meta_path, json.dumps(metadata, ensure_ascii=False, indent=2).encode("utf-8")
-        )
+        self._atomic_write(meta_path, json.dumps(metadata, ensure_ascii=False, indent=2).encode("utf-8"))
         return entry
 
     async def delete(self, key: str) -> None:

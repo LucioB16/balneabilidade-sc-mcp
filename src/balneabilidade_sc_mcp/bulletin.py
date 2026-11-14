@@ -147,9 +147,7 @@ def parse_bulletin_text(
     if date_match:
         bulletin_date = parse_br_date(date_match.group(1))
         if bulletin_date_hint is not None and bulletin_date != bulletin_date_hint:
-            warnings.append(
-                f"bulletin date {bulletin_date} differs from link date {bulletin_date_hint}"
-            )
+            warnings.append(f"bulletin date {bulletin_date} differs from link date {bulletin_date_hint}")
     elif bulletin_date_hint is not None:
         bulletin_date = bulletin_date_hint
         warnings.append("bulletin date missing from PDF; using link date")
@@ -373,9 +371,7 @@ class BulletinRepository:
         *,
         known_municipalities: Sequence[str] = (),
     ) -> BulletinBundle:
-        bulletin = await self.fetch(
-            bulletin_date, known_municipalities=known_municipalities
-        )
+        bulletin = await self.fetch(bulletin_date, known_municipalities=known_municipalities)
         raw = await self.pdf_bytes(bulletin.bulletin_date)
         return BulletinBundle(bulletin=bulletin, pdf_bytes=raw)
 
@@ -386,7 +382,9 @@ class BulletinRepository:
         if cached is not None:
             return cached.data
         response = await self._http.get(PDF_PATH.format(date=target.isoformat()))
-        if "application/pdf" not in response.content_type.lower() and not response.content.startswith(b"%PDF"):
+        if "application/pdf" not in response.content_type.lower() and not response.content.startswith(
+            b"%PDF"
+        ):
             raise ImaSchemaError("bulletin download was not a PDF")
         await self._cache.set(cache_key, response.content, response.content_type, PDF_TTL)
         return response.content

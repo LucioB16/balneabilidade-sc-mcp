@@ -141,9 +141,7 @@ class ImaProvider:
         bulletin: Bulletin | None = None
         vision_fallback: VisionFallback | None = None
         try:
-            bundle = await self._bulletin.fetch_bundle(
-                known_municipalities=catalog.municipalities
-            )
+            bundle = await self._bulletin.fetch_bundle(known_municipalities=catalog.municipalities)
             bulletin = bundle.bulletin
             if self._bulletin_incomplete(bulletin, catalog):
                 vision_fallback = self._vision_fallback(
@@ -446,9 +444,7 @@ class ImaProvider:
         warnings.extend(enrichment_warnings)
         return enriched
 
-    def _row_freshness(
-        self, row: BulletinRow, bulletin: Bulletin
-    ) -> tuple[Freshness, int, str]:
+    def _row_freshness(self, row: BulletinRow, bulletin: Bulletin) -> tuple[Freshness, int, str]:
         age = (bulletin.bulletin_date - row.sample_date).days
         if age < 0:
             return Freshness.STALE, age, "sample date is after the bulletin date"
@@ -490,9 +486,7 @@ class ImaProvider:
                 continue
             if export.stale:
                 extra_warnings.append(f"CSV lab values for {beach} {year} came from stale cache")
-            samples = {
-                (fold(sample.point_name), sample.sample_date): sample for sample in export.samples
-            }
+            samples = {(fold(sample.point_name), sample.sample_date): sample for sample in export.samples}
             for index in indices:
                 status = enriched[index]
                 if status.sample_date is None:
@@ -558,9 +552,7 @@ class ImaProvider:
                 continue
             analyses = await self._latest_analyses(point, warnings)
             if analyses is not None:
-                freshness, point_warning, age = self._fallback_freshness(
-                    analyses.sample_date, bulletin_date
-                )
+                freshness, point_warning, age = self._fallback_freshness(analyses.sample_date, bulletin_date)
                 statuses.append(
                     PointStatus(
                         point=point,
@@ -621,17 +613,13 @@ class ImaProvider:
             if export.stale:
                 warnings.append(f"CSV fallback for {point.beach} {year} came from stale cache")
             candidates = [
-                sample
-                for sample in export.samples
-                if fold(sample.point_name) == fold(point.point_name)
+                sample for sample in export.samples if fold(sample.point_name) == fold(point.point_name)
             ]
             if candidates:
                 return max(candidates, key=lambda sample: sample.sample_date), export
         return None, None
 
-    async def _latest_analyses(
-        self, point: CatalogPoint, warnings: list[str]
-    ) -> AnalysesSample | None:
+    async def _latest_analyses(self, point: CatalogPoint, warnings: list[str]) -> AnalysesSample | None:
         try:
             result = await self._analyses.fetch(point.point_id)
         except ImaError as exc:
@@ -664,9 +652,7 @@ class ImaProvider:
         total = len(statuses)
         current = sum(status.freshness == Freshness.CURRENT for status in statuses)
         improper = sum(status.classification == Classification.IMPROPER for status in statuses)
-        stale = sum(
-            status.freshness in (Freshness.CARRIED_FORWARD, Freshness.STALE) for status in statuses
-        )
+        stale = sum(status.freshness in (Freshness.CARRIED_FORWARD, Freshness.STALE) for status in statuses)
         excluded = sum(status.freshness == Freshness.EXCLUDED for status in statuses)
         unknown = sum(status.freshness == Freshness.UNKNOWN for status in statuses)
         proper = sum(status.classification == Classification.PROPER for status in statuses)
@@ -674,8 +660,10 @@ class ImaProvider:
             status = BeachStatus.UNKNOWN
         elif improper:
             status = BeachStatus.MIXED if proper else BeachStatus.IMPROPER
-        elif proper and current == total and all(
-            item.classification == Classification.PROPER for item in statuses
+        elif (
+            proper
+            and current == total
+            and all(item.classification == Classification.PROPER for item in statuses)
         ):
             status = BeachStatus.PROPER
         elif proper:
@@ -736,9 +724,7 @@ def _find_row(
     return None, "no matching bulletin row"
 
 
-def _is_excluded(
-    point: CatalogPoint, bulletin: Bulletin, mentioned_municipalities: set[str]
-) -> bool:
+def _is_excluded(point: CatalogPoint, bulletin: Bulletin, mentioned_municipalities: set[str]) -> bool:
     number = point_number(point.point_name)
     if number is None or number not in bulletin.discarded_point_numbers:
         return False

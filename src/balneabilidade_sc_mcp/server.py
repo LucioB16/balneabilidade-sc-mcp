@@ -60,13 +60,9 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
             "municipio. Devuelve candidatos; no elige una playa si hay nombres repetidos."
         ),
     )
-    async def search_beaches(
-        query: str, municipality: str | None = None, limit: int = 10
-    ) -> dict[str, Any]:
+    async def search_beaches(query: str, municipality: str | None = None, limit: int = 10) -> dict[str, Any]:
         try:
-            matches = await provider.search_beaches(
-                query, municipality=municipality, limit=limit
-            )
+            matches = await provider.search_beaches(query, municipality=municipality, limit=limit)
         except ImaError as exc:
             raise _fail(exc) from exc
         return {
@@ -129,9 +125,7 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
         point_id: str | None = None,
     ) -> dict[str, Any]:
         try:
-            result = await provider.get_bathing_status(
-                beach, municipality=municipality, point_id=point_id
-            )
+            result = await provider.get_bathing_status(beach, municipality=municipality, point_id=point_id)
         except ImaError as exc:
             raise _fail(exc) from exc
         return status_to_dict(result)
@@ -229,4 +223,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

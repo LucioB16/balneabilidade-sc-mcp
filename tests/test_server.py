@@ -109,9 +109,7 @@ async def test_sampling_points_and_status_payloads() -> None:
 
 
 async def test_history_payload_and_error_response() -> None:
-    provider = make_provider(
-        history_exports={("Porto Belo", "Praia de Perequê", 2026): make_csv_export()}
-    )
+    provider = make_provider(history_exports={("Porto Belo", "Praia de Perequê", 2026): make_csv_export()})
     async with mcp_session(provider) as session:
         history = await session.call_tool(
             "get_bathing_history",

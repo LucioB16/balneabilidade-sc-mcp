@@ -50,9 +50,7 @@ async def test_zimbros_is_mixed_not_proper() -> None:
 
 async def test_excluded_and_carried_points_are_not_current() -> None:
     provider = make_provider()
-    excluded = await provider.get_bathing_status(
-        "Praia de Ponta das Canas", municipality="Florianópolis"
-    )
+    excluded = await provider.get_bathing_status("Praia de Ponta das Canas", municipality="Florianópolis")
     point_83 = excluded.points[0]
     assert point_83.freshness is Freshness.EXCLUDED
     assert point_83.classification is Classification.UNKNOWN
@@ -82,9 +80,7 @@ async def test_ambiguous_name_and_missing_bulletin_row() -> None:
 
 
 async def test_point_filter_returns_only_requested_point() -> None:
-    provider = make_provider(
-        history_exports={("Porto Belo", "Praia de Perequê", 2026): make_csv_export()}
-    )
+    provider = make_provider(history_exports={("Porto Belo", "Praia de Perequê", 2026): make_csv_export()})
     result = await provider.get_bathing_status(
         "Praia de Perequê",
         municipality="Porto Belo",
@@ -111,9 +107,7 @@ async def test_without_bulletin_falls_back_to_unverified_csv() -> None:
 
 
 async def test_history_pagination_and_coverage() -> None:
-    provider = make_provider(
-        history_exports={("Porto Belo", "Praia de Perequê", 2026): make_csv_export()}
-    )
+    provider = make_provider(history_exports={("Porto Belo", "Praia de Perequê", 2026): make_csv_export()})
     first = await provider.get_bathing_history(
         "Praia de Perequê",
         municipality="Porto Belo",
@@ -137,9 +131,7 @@ async def test_history_pagination_and_coverage() -> None:
 
 
 async def test_history_point_filter_and_invalid_range() -> None:
-    provider = make_provider(
-        history_exports={("Porto Belo", "Praia de Perequê", 2026): make_csv_export()}
-    )
+    provider = make_provider(history_exports={("Porto Belo", "Praia de Perequê", 2026): make_csv_export()})
     filtered = await provider.get_bathing_history(
         "Praia de Perequê",
         municipality="Porto Belo",

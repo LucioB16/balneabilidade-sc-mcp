@@ -109,9 +109,7 @@ async def test_duplicate_measurement_is_deduped_and_counted() -> None:
 async def test_missing_years_are_explicit() -> None:
     exports = {
         ("Porto Belo", "Praia de Perequê", 2024): export(2024, ()),
-        ("Porto Belo", "Praia de Perequê", 2025): export(
-            2025, (sample("Ponto 03", date(2025, 12, 31)),)
-        ),
+        ("Porto Belo", "Praia de Perequê", 2025): export(2025, (sample("Ponto 03", date(2025, 12, 31)),)),
         ("Porto Belo", "Praia de Perequê", 2026): export(2026, ()),
     }
     provider = make_provider(history_exports=exports)
@@ -129,9 +127,7 @@ async def test_missing_years_are_explicit() -> None:
 
 async def test_partial_year_outage_is_transparent() -> None:
     exports = {
-        ("Porto Belo", "Praia de Perequê", 2026): export(
-            2026, (sample("Ponto 03", date(2026, 11, 9)),)
-        )
+        ("Porto Belo", "Praia de Perequê", 2026): export(2026, (sample("Ponto 03", date(2026, 11, 9)),))
     }
     provider = make_provider(
         history_exports=exports,
@@ -198,9 +194,7 @@ async def test_status_conflicting_csv_verdict_keeps_bulletin_and_warns() -> None
         for item in base.samples
     )
     provider = make_provider(
-        history_exports={
-            ("Porto Belo", "Praia de Perequê", 2026): replace(base, samples=conflicted)
-        },
+        history_exports={("Porto Belo", "Praia de Perequê", 2026): replace(base, samples=conflicted)},
         analyses=None,
     )
     result = await provider.get_bathing_status("Praia de Perequê", municipality="Porto Belo")

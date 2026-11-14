@@ -1,4 +1,3 @@
-
 import pytest
 
 from balneabilidade_sc_mcp.errors import ImaInvalidArgument

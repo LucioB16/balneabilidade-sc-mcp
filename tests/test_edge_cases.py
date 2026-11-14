@@ -44,9 +44,7 @@ async def test_renamed_or_unknown_point_is_reported_as_unmatched() -> None:
         fetched_at=FETCHED_AT,
         source_url="https://example.test/csv",
     )
-    provider = make_provider(
-        history_exports={("Porto Belo", "Praia de Perequê", 2026): export}
-    )
+    provider = make_provider(history_exports={("Porto Belo", "Praia de Perequê", 2026): export})
     result = await provider.get_bathing_history(
         "Praia de Perequê",
         municipality="Porto Belo",
