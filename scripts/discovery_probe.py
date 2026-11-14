@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Read-only IMA/SC connectivity probe for Phase 1 discovery.
+"""Read-only IMA/SC connectivity probe for discovery and diagnostics.
 
 This is discovery tooling, not the MCP provider. It performs a handful of
 requests against the public portal, prints small shape/count summaries, and

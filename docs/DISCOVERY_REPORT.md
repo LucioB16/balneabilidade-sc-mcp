@@ -1,6 +1,6 @@
 # IMA/SC Discovery Report
 
-**Status:** Phase 1 discovery complete; provider implementation deliberately not started.  
+**Status:** discovery complete; provider, MCP server and release are documented in the linked docs.  
 **Investigation date:** 2026-11-14, 19:04–19:13 `America/Buenos_Aires` (UTC−3) = 2026-11-14T22:04–22:13Z. Official sampling dates use `America/Sao_Paulo` (also UTC−3 on this date).  
 **Repository:** <https://github.com/LucioB16/balneabilidade-sc-mcp>  
 **Bootstrap commit at investigation start:** `d1b42a4052e7eefc62d68fe4e5b77731abd83286`  
@@ -143,7 +143,7 @@ Confirmed semantics:
 ```
 
 - The map `CONDICAO` matched the PDF row condition **260/260**. The map is therefore a *consistent but undated* snapshot, not a validity filter.
-- Parsing feasibility: with the system pypdf 6.16.2 used during Phase 1, page 19 (complementary information: recommendations, methodology, CONAMA 274 classification) raised `PdfReadError` on a malformed content stream. The pinned provider version 6.21.4 extracted all 19 pages. Page-level tolerance remains necessary because PDFs vary, but the current point table is complete.
+- Parsing feasibility: with the system pypdf 6.16.2 used during the initial investigation, page 19 (complementary information: recommendations, methodology, CONAMA 274 classification) raised `PdfReadError` on a malformed content stream. The pinned provider version 6.21.4 extracted all 19 pages. Page-level tolerance remains necessary because PDFs vary, but the current point table is complete.
 - Lookahead matters: on pypdf text, **73 of 260** headings have the date/verdict 3–7 lines later because the address wraps. A two-line window parsed only **187/260** rows; searching forward until the next heading (up to 8 lines) recovered **260/260**. Marola's `VerdictWithinLines=2` would be unsafe with this extraction.
 - Two headings wrap across lines in the extracted text (`Lagoa Boca da Barra - Na foz do Canal do Linguado (Ponto` + `02)`; `Praia da Costeira da Armação- Baía dos Golfinhos (Ponto` + `03)`). A naive line parser misses them. With a two-line heading reflow, all 260 rows matched the catalog; without it, 258/260 matched. This is a concrete correctness risk, not a cosmetic one.
 - An older bulletin (46/2026, 2026-09-24) also parsed to 260 rows but most sample dates were 25–28/08/2026, with 10 points collected on 21/09/2026 in Balneário Camboriú. The intro explains the **off-season monthly cadence** (April–September) and a court-ordered weekly exception for Balneário Camboriú. A PDF row can therefore be legitimately ~30 days old in the off-season. Freshness must be season-aware, not a single fixed number.
@@ -184,7 +184,7 @@ Pinned commit `7061a08e643c5fe05485cb2917be405f5b1ab8c4`; MIT (copyright 2026 ma
 
 **MIT attribution obligations**
 
-If we copy code (not just ideas), we must retain the MIT copyright notice and permission notice in the copied source/distribution, and identify marola.dev as the origin. Conceptual reuse should still be credited in the repository documentation. This phase copies no code; the repository has no project license yet.
+If we copy code (not just ideas), we must retain the MIT copyright notice and permission notice in the copied source/distribution, and identify marola.dev as the origin. Conceptual reuse should still be credited in the repository documentation. No Marola code is copied; the project code is MIT and the data license remains unresolved.
 
 ## 5. Source comparison
 
@@ -222,7 +222,7 @@ The bulletin prose says 257 points were monitored that week, while the table has
 
 A 45-day threshold (Marola's choice, reasonable for monthly off-season sampling) fails here: it accepts Ponto 83 (8 days) and Ponto 94 (25 days). The current bulletin is in-season (weekly), so the threshold must be tighter, and the bulletin's own exclusions must be honored.
 
-### Proposed policy (to implement and validate in Phase 2)
+### Freshness policy (implemented)
 
 1. **Authoritative latest:** the newest bulletin PDF discovered from the portal index.
    - Parse `bulletin_date` from `DATA:`, report number, and the collection dates from the intro when present.
@@ -238,7 +238,7 @@ A 45-day threshold (Marola's choice, reasonable for monthly off-season sampling)
 3. **Cadence thresholds (proposal, evidence-based):**
    - In-season (October–March, weekly): sample within **10 days** of the bulletin date; the three current-week dates are typically 2–4 days before publication.
    - Off-season (April–September, monthly): sample within **40 days**; bulletin 46 shows legitimate ~30-day-old rows.
-   - These thresholds are **provisional**; Phase 2 must test them across more bulletins. The PDF's stated collection dates and exclusion footnote take precedence over the numeric threshold.
+   - These thresholds are **provisional**; further bulletins should test them across more bulletins. The PDF's stated collection dates and exclusion footnote take precedence over the numeric threshold.
 4. **Fallback if PDF fails:** use the latest CSV row for the beach/year (fetch current year, then previous year), plus `analisesPonto` for the points. Set `bulletin_unverified=true`, `bulletin_date` from the cached index if known, and apply the same age window conservatively. Never upgrade an unverified result to `proper` beach summary.
 5. **Never** use map `CONDICAO` as the status. If only the map is reachable, return `unknown` with catalog data and an explicit provider-degraded warning.
 6. **Cache:** serve the last good bulletin/catalog with original dates; do not overwrite good cache with empty responses. Recompute ages at read time, not cache time.
@@ -299,7 +299,7 @@ Catalog:
 - `ima/latest`: reconciliation of bulletin rows + CSV/analyses values, freshness flags, beach summary, per-point output, provenance.
 - `models`: typed dataclasses/Pydantic models; enums for classification (`proper`, `improper`, `indeterminate`, `unknown`), freshness, source.
 - `service`: use cases (`search_beaches`, `get_sampling_points`, `get_bathing_status`, `get_bathing_history`); no HTTP in tools.
-- `mcp`: Phase 3, official Python MCP SDK (`MCPServer` v2) over stdio; logs to stderr only; typed errors.
+- `mcp`: official Python MCP SDK (`MCPServer` v2) over stdio; logs to stderr only; typed errors.
 
 ### 8.3 Join strategy
 
@@ -332,7 +332,7 @@ No database needed for MVP. A small on-disk cache (JSON/binary keyed by hash) is
 ## 9. Legal, licensing and operational notes
 
 - **No license/terms found.** The portal has no license/terms/open-data statement; `robots.txt` is 404; the Santa Catarina CKAN API search for `balneabilidade` returned **0 datasets**; Marola MIP-0056 independently records that IMA never published a license (verified on the portal and `dados.sc.gov.br`). Public availability is not a reuse license.
-- **Do not commit IMA datasets or PDFs.** The repository should contain code, docs and small synthetic/derived fixtures only. Fetch at runtime, attribute IMA/SC, and decide a data-reuse policy before publishing cached datasets. The project's own source license is also not decided yet (Phase 5); the public repo is not automatically open-source licensed.
+- **Do not commit IMA datasets or PDFs.** The repository should contain code, docs and small synthetic/derived fixtures only. Fetch at runtime, attribute IMA/SC, and decide a data-reuse policy before publishing cached datasets. Project code is MIT; the IMA data-reuse license remains unresolved.
 - **Attribution:** cite `Instituto do Meio Ambiente de Santa Catarina (IMA/SC)` and the portal URL in every response; include the bulletin/report number and source URL where available.
 - **Politeness:** low request volume, caching, timeouts, bounded retries, backoff on 5xx, no parallel hammering, no scraping of all 260 points when one PDF covers them. Avoid `OPTIONS`/HEAD probes in production.
 - **CORS:** not available; a browser-only client cannot call IMA directly. Server-side MCP avoids this. Do not add a public proxy without auth/abuse controls.
@@ -401,7 +401,7 @@ head -1 pereque-2026.csv
 
 **Validated reproduction artifact:** `python scripts/discovery_probe.py` performs a small read-only subset of these calls and checks the catalog, dated analyses, CSV and latest PDF shapes. It printed the expected 260 points, 5 analyses, 75 CSV rows and 317,885-byte PDF on 2026-11-14. It was re-run from a clean clone of commit `90c179f` and passed with the same counts. It is discovery tooling, not the MCP provider, and is not called by CI.
 
-The full PDF parsing check (Python 3.12 + `pypdf`): extract pages 1–18, reflow headings, and assert the row count/key match against the catalog. The ad hoc scripts used for the deeper comparisons were discovery-only and were kept out of the repository (see `.gitignore`); Phase 2 will turn them into tested code.
+The full PDF parsing check (Python 3.12 + `pypdf`): extract pages 1–18, reflow headings, and assert the row count/key match against the catalog. The ad hoc scripts used for the deeper comparisons were discovery-only and were kept out of the repository (see `.gitignore`); the provider now implements these checks as offline tests.
 
 ## 12. Decision record
 
@@ -420,13 +420,13 @@ The full PDF parsing check (Python 3.12 + `pypdf`): extract pages 1–18, reflow
 - PDF as sole source: rejected — no E. coli values/coordinates; parsing fragility; use CSV/catalog for those.
 - Historical HTML: rejected as primary — per-point HTML, no stable schema.
 
-**SDK/runtime and transport:** Python 3.12.4 with uv 0.11.28, `httpx` 0.28.1, `pypdf` 6.21.4, `tzdata`, typed dataclasses, `pytest` 8.4.2, `ruff` 0.17.5 and `mypy` 1.20.2. Official MCP Python SDK **2.3.0** was verified to expose `mcp.server.MCPServer`; it is an optional `mcp` extra for Phase 3 over **stdio**. No remote MCP in Phase 1 or 2.
+**SDK/runtime and transport:** Python 3.12.4 with uv 0.11.28, `httpx` 0.28.1, `pypdf` 6.21.4, `tzdata`, typed dataclasses, `pytest` 8.4.2, `ruff` 0.17.5 and `mypy` 1.20.2. Official MCP Python SDK **2.3.0** was verified to expose `mcp.server.MCPServer`; it is an optional `mcp` extra over **stdio**. No remote MCP is implemented.
 
 **Remaining open questions**
 
 - Exact license/reuse policy for IMA data (do not publish datasets until decided).
-- Project source license (Phase 5; currently no LICENSE file).
-- Season-aware threshold calibration across more bulletins (Phase 2).
+- Project code is MIT (see LICENSE); IMA data-reuse licensing remains unresolved.
+- Season-aware threshold calibration across more bulletins.
 - Whether the IMA point UUID is stable long-term; monitor.
 - Rate limits/abuse policy for any future remote deployment (not authorized now).
 
@@ -434,12 +434,12 @@ The full PDF parsing check (Python 3.12 + `pypdf`): extract pages 1–18, reflow
 
 - Public repo: <https://github.com/LucioB16/balneabilidade-sc-mcp> (verified `visibility=PUBLIC`, `isPrivate=false`, default branch `main`).
 - Initial commit: `d1b42a4052e7eefc62d68fe4e5b77731abd83286`; `git ls-remote origin` matched `refs/heads/main`.
-- Phase 1 docs commit SHA: recorded in the end-of-phase report and on GitHub.
+- Initial docs commit SHA is recorded in Git history and on GitHub.
 
-## 13. Phase 2 implementation status
+## 13. Implementation status
 
 The normalized provider is implemented in `src/balneabilidade_sc_mcp/` and documented in [`PROVIDER.md`](PROVIDER.md). It parses the live 2026-11-13 PDF to 260 rows, distinguishes discarded Ponto 83 from carried Pontos 94/96, enriches samples with CSV values, and keeps the map out of the status path. Offline tests use synthetic fixtures and never call IMA.
 
-The Phase 3 local stdio MCP server is documented in [`MCP_SERVER.md`](MCP_SERVER.md). Its deterministic parser remains primary; if the point table is incomplete, it returns `vision_fallback` metadata and `get_bulletin_page` renders the original PDF page as PNG for a vision-capable client. The server does not call an LLM and never fabricates missing rows.
+The local stdio MCP server is documented in [`MCP_SERVER.md`](MCP_SERVER.md). Its deterministic parser remains primary; if the point table is incomplete, it returns `vision_fallback` metadata and `get_bulletin_page` renders the original PDF page as PNG for a vision-capable client. The server does not call an LLM and never fabricates missing rows.
 
-Phase 4 hardened `get_bathing_history`: inclusive year boundaries, descending order, bounded cursor pagination, raw CSV provenance, E. coli unit/qualifiers, exact-duplicate deduplication, separate `years_without_data`/`years_unavailable`, and `unmatched_names` for point-name drift. Live checks covered 2025 (3 points, 29/12/2025) and 2026 (latest bulletin 13/11/2026, 3 proper points).
+History supports: `get_bathing_history`: inclusive year boundaries, descending order, bounded cursor pagination, raw CSV provenance, E. coli unit/qualifiers, exact-duplicate deduplication, separate `years_without_data`/`years_unavailable`, and `unmatched_names` for point-name drift. Live checks covered 2025 (3 points, 29/12/2025) and 2026 (latest bulletin 13/11/2026, 3 proper points).

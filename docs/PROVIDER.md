@@ -1,10 +1,10 @@
-# IMA/SC provider — Phase 2 implementation
+# IMA/SC provider implementation
 
 **Status:** normalized provider implemented and tested offline; the local stdio MCP server is documented separately in [MCP_SERVER.md](MCP_SERVER.md). This document records the provider choices and live verification performed on 2026-11-14.
 
-Related: [Discovery report](DISCOVERY_REPORT.md) · [Product contract](PRODUCT_CONTRACT.md) · [Plan](../PLAN.md)
+Related: [Discovery report](DISCOVERY_REPORT.md) · [Product contract](PRODUCT_CONTRACT.md)
 
-## Toolchain verified for this phase
+## Toolchain verified
 
 | Tool | Verified version | Notes |
 |---|---|---|
@@ -128,7 +128,7 @@ uv sync --extra dev
 uv run pytest
 uv run ruff check src tests
 uv run mypy src
-python scripts/discovery_probe.py   # live, read-only Phase 1 probe
+python scripts/discovery_probe.py   # live, read-only discovery probe
 ```
 
 Offline tests never call IMA. The live probe is intentionally separate and is not run by CI.
@@ -146,7 +146,7 @@ With the default cache and a fixed `today=2026-11-14`:
 - History for Perequê 2025 returned 3 points sampled 29/12/2025: Ponto 03 `improper` (279), Pontos 04/05 `proper` (132/20), all with `csv_year=2025` and raw CSV provenance. A 2025–2026 query covered both years, and 2026 history returned descending records with pagination.
 - Clean-clone validation: a fresh clone of commit 8770a29 completed uv sync --extra dev, all 71 offline tests (provider + MCP), ruff, format, mypy and package build; a live stdio client discovered all tools and returned proper for the 3 Perequê points.
 
-## Known limitations and next phases
+## Known limitations
 
 - The PDF parser depends on pypdf text extraction. The live 2026-11-13 PDF needs lookahead up to 7 lines per heading; a 2-line window yields only **187/260 rows**. The implementation searches forward until the next heading, so wrapped addresses do not lose the verdict.
 - pypdf 6.16.2 failed on page 19 of this PDF; pypdf 6.21.4 extracts all pages. Page-level tolerance remains because future PDFs can regress.

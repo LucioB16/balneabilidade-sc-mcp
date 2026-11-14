@@ -32,3 +32,4 @@ data/downloads/
 Thumbs.db
 .idea/
 .vscode/
+.agents/

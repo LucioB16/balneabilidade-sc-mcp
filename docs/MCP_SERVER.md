@@ -1,10 +1,10 @@
-# MCP server — local stdio (Phase 3)
+# MCP server — local stdio
 
 **Status:** implemented and verified over local stdio. Remote HTTP deployment is **not** implemented or authorized.
 
-The server wraps the Phase 2 provider with five MCP tools, keeps all diagnostics on stderr, and returns explicit tool errors for invalid/ambiguous queries and provider outages.
+The server wraps the provider with five MCP tools, keeps all diagnostics on stderr, and returns explicit tool errors for invalid/ambiguous queries and provider outages.
 
-Related: [Provider](PROVIDER.md) · [Product contract](PRODUCT_CONTRACT.md) · [Discovery report](DISCOVERY_REPORT.md) · [Plan](../PLAN.md)
+Related: [Provider](PROVIDER.md) · [Product contract](PRODUCT_CONTRACT.md) · [Discovery report](DISCOVERY_REPORT.md)
 
 ## What the client model actually sees
 
@@ -101,7 +101,7 @@ This is deliberate: PDF extraction failure is a data-quality state, not an invit
 - MCP stdio carries protocol messages on stdout. The server logs only to stderr; no `print()` is used.
 - `mcp 2.3.0`/`MCPServer` is the verified SDK; `mcp.server.mcpserver.exceptions.ToolError` produces `is_error` tool responses.
 - Tool failures are explicit: ambiguous beach, invalid range, provider outage, no data.
-- Local stdio is the MVP. There is no authentication, access control or abuse prevention for remote deployment; do not expose this server over a network without a separate authorization/security phase.
+- Local stdio is the MVP. There is no authentication, access control or abuse prevention for remote deployment; do not expose this server over a network without a separate security review.
 - No IMA credentials are used. The data license remains unresolved; see the discovery report.
 
 ## Verification performed
@@ -122,4 +122,4 @@ This is deliberate: PDF extraction failure is a data-quality state, not an invit
 - The server has no hosted transport, authentication or rate limiting.
 - The client configuration path is machine-specific; adjust it for the user's checkout.
 - The vision fallback returns images but does not itself produce structured rows; that remains the client model's responsibility and must be clearly labelled.
-- Phase 5 handles public packaging, licensing, CI and release metadata.
+- Public packaging, licensing, CI and release metadata are documented in RELEASE.md and ATTRIBUTION.md.

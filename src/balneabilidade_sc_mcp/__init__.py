@@ -1,6 +1,6 @@
 """IMA/SC bathing-water provider.
 
-Phase 2 implements the normalized provider only; the MCP server is Phase 3.
+The package exposes the normalized provider and the local stdio MCP server.
 """
 
 from .provider import ImaProvider

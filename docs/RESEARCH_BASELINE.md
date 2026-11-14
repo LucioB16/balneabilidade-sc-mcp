@@ -40,8 +40,8 @@ Last prepared: **2026-11-14**. Read this with [`DISCOVERY_REPORT.md`](DISCOVERY_
   - Tests: `local/src/test/scala/marola/water/ImaSc*Spec.scala`
 - Issue #57: <https://github.com/marola-dev/marola-app/issues/57> — created and closed 2026-10-06; documents the loss of `ANALISES` and the PDF fallback.
 - MIP-0056 (CSV/open-data design, not shipped code): <https://github.com/marola-dev/marola/blob/main/docs/MIPs/MIP-0056-oods-open-ocean-data-store.md> — confirms the CSV fields, 2003–2026 coverage, BOM, 13 columns, `<20` handling, name-based join, and the license gap.
-- Another Python client: <https://github.com/soutobias/oceanobs/blob/dev/oceanobs/water_quality/sc.py> — not used as evidence in this phase; review only if it adds a tested adapter.
-- Official Python MCP SDK: <https://github.com/modelcontextprotocol/python-sdk> and <https://py.sdk.modelcontextprotocol.io/> — v2 uses `MCPServer`; verify the pinned stable version in Phase 2. Do not copy v1 `FastMCP` examples.
+- Another Python client: <https://github.com/soutobias/oceanobs/blob/dev/oceanobs/water_quality/sc.py> — not used as evidence; review only if it adds a tested adapter.
+- Official Python MCP SDK: <https://github.com/modelcontextprotocol/python-sdk> and <https://py.sdk.modelcontextprotocol.io/> — v2 uses `MCPServer`; the pinned version is recorded in PROVIDER.md. Do not copy v1 `FastMCP` examples.
 
 ## Endpoint hypotheses — corrected status
 

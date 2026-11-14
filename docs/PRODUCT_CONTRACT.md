@@ -1,6 +1,6 @@
-# MCP product contract (evidence-based; provider implemented in Phase 2)
+# MCP product contract
 
-**Status:** design contract grounded in the 2026-11-14 live discovery in [`DISCOVERY_REPORT.md`](DISCOVERY_REPORT.md). The normalized provider is implemented and offline-tested (Phase 2, [provider notes](PROVIDER.md)); the local stdio MCP tools are implemented and client-tested (Phase 3, [server notes](MCP_SERVER.md)).
+**Status:** design contract grounded in the 2026-11-14 live discovery in [`DISCOVERY_REPORT.md`](DISCOVERY_REPORT.md). The normalized provider is implemented and offline-tested ([provider notes](PROVIDER.md)); the local stdio MCP tools are implemented and client-tested ([server notes](MCP_SERVER.md)).
 
 ## Objective
 
@@ -229,7 +229,7 @@ Rules:
 - Always include `sample_date`, `bulletin_date` (when known), source and `fetched_at`. A response without a sample date is not a status.
 - A stale or unverified result must not be presented as current; use "latest published sample dated …" language.
 
-### Freshness policy (implemented in Phase 2; calibration continues)
+### Freshness policy (implemented; calibration continues)
 
 - In-season (October–March, weekly): current if `sample_age_at_bulletin_days <= 10`.
 - Off-season (April–September, monthly): current if `sample_age_at_bulletin_days <= 40`.
@@ -361,6 +361,6 @@ Other Brazilian states; wave/temperature/weather forecasts; jellyfish; advisorie
 ## Open decisions before release
 
 - Data-reuse/license policy for IMA content (none found; do not publish datasets).
-- Project source license (Phase 5; no LICENSE yet).
+- IMA/SC data-reuse license remains unresolved; project code is MIT (see LICENSE and ATTRIBUTION.md).
 - Final season-aware thresholds after testing more bulletins.
 - Whether to expose raw bulletin provenance fields on every point or only at the response level (default: response-level plus per-point source URL).
