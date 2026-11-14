@@ -6,6 +6,17 @@ The server wraps the Phase 2 provider with five MCP tools, keeps all diagnostics
 
 Related: [Provider](PROVIDER.md) · [Product contract](PRODUCT_CONTRACT.md) · [Discovery report](DISCOVERY_REPORT.md) · [Plan](../PLAN.md)
 
+## What the client model actually sees
+
+The LLM client does **not** automatically read `README.md` or the files under `docs/`. At runtime it receives:
+
+1. the `initialize` server `instructions` (which now include the point-level and vision-fallback policy);
+2. the `tools/list` names, descriptions and JSON schemas;
+3. the `tools/call` text/structured/image results;
+4. only those resources/prompts the client chooses to read (this server currently exposes none).
+
+The repository documents are for developers. The operational policy is deliberately duplicated in the MCP `instructions` and tool descriptions so the model can act without reading the repo. When `vision_fallback` is present, its `instructions` field repeats the fallback procedure in the tool response itself.
+
 ## Install and run
 
 ```bash
@@ -94,7 +105,7 @@ This is deliberate: PDF extraction failure is a data-quality state, not an invit
 
 ## Verification performed
 
-- `uv run pytest`: **63 offline tests** (provider + MCP in-memory client), no network.
+- `uv run pytest`: **64 offline tests** (provider + MCP in-memory client), no network.
 - `uv run ruff check src tests`: OK.
 - `uv run mypy src`: OK.
 - Real stdio handshake with the official `ClientSession` + `stdio_client`:
@@ -103,7 +114,7 @@ This is deliberate: PDF extraction failure is a data-quality state, not an invit
   - `get_bathing_status` for Perequê returned `proper`, 3 points and bulletin 2026-11-13;
   - stderr contained only diagnostics, no stdout protocol contamination.
 - Console entry point starts and exits cleanly on EOF.
-- Clean clone of commit a042d92: uv sync --extra dev, 63 tests, ruff and mypy passed; the console entry point exited cleanly on EOF.
+- Clean clone of commit a042d92: uv sync --extra dev, 64 tests, ruff and mypy passed; the console entry point exited cleanly on EOF.
 
 ## Known limitations
 

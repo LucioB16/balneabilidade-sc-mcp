@@ -50,6 +50,13 @@ async def mcp_session(provider) -> AsyncIterator[ClientSession]:
                 await task
 
 
+async def test_server_instructions_include_vision_policy() -> None:
+    server = create_server(make_provider())
+    assert "vision_fallback" in server.instructions
+    assert "get_bulletin_page" in server.instructions
+    assert "tiempo real" in server.instructions
+
+
 async def test_server_lists_all_tools() -> None:
     async with mcp_session(make_provider()) as session:
         result = await session.list_tools()

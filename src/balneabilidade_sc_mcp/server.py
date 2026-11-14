@@ -44,14 +44,19 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
         instructions=(
             "Consulta la balneabilidade oficial de Santa Catarina (IMA/SC) por "
             "playa y punto de muestreo. Los resultados son muestras fechadas, no "
-            "mediciones en tiempo real. Preguntas en espaÃ±ol o portuguÃªs son bienvenidas."
+            "tiempo real. Trabaja siempre por punto: una playa puede tener resultados "
+            "mixtos. Si una respuesta incluye vision_fallback, el parser determinista del "
+            "PDF quedó incompleto: solo si tu cliente tiene visión, llama a "
+            "get_bulletin_page para leer las páginas PNG; no inventes filas y marca como "
+            "no verificadas las páginas que no puedas leer. No uses la CONDICAO del mapa "
+            "como estado actual. Preguntas en español o português son bienvenidas."
         ),
     )
 
     @server.tool(
         name="search_beaches",
         description=(
-            "Busca playas monitoreadas por IMA/SC por nombre, con desambiguaciÃ³n por "
+            "Busca playas monitoreadas por IMA/SC por nombre, con desambiguación por "
             "municipio. Devuelve candidatos; no elige una playa si hay nombres repetidos."
         ),
     )
@@ -85,8 +90,8 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
     @server.tool(
         name="get_sampling_points",
         description=(
-            "Lista los puntos de muestreo de una playa, con UUID, ubicaciÃ³n y "
-            "coordenadas cuando IMA las publica. La playa debe resolverse sin ambigÃ¼edad."
+            "Lista los puntos de muestreo de una playa, con UUID, ubicación y "
+            "coordenadas cuando IMA las publica. La playa debe resolverse sin ambigüedad."
         ),
     )
     async def get_sampling_points(
@@ -111,11 +116,11 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
     @server.tool(
         name="get_bathing_status",
         description=(
-            "Devuelve el Ãºltimo resultado oficial FECHADO por punto de muestreo, "
-            "con fecha de muestra, fecha de boletÃ­n, frescura y resumen conservador "
-            "de la playa. No es una mediciÃ³n en tiempo real. Si el parser del PDF "
-            "queda incompleto, incluye vision_fallback para que un cliente con visiÃ³n "
-            "lea las pÃ¡ginas originales."
+            "Devuelve el último resultado oficial FECHADO por punto de muestreo, "
+            "con fecha de muestra, fecha de boletín, frescura y resumen conservador "
+            "de la playa. No es una medición en tiempo real. Si el parser del PDF "
+            "queda incompleto, incluye vision_fallback para que un cliente con visión "
+            "lea las páginas originales."
         ),
     )
     async def get_bathing_status(
@@ -135,7 +140,7 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
         name="get_bathing_history",
         description=(
             "Devuelve historial oficial fechado por playa/punto, con rango inclusivo, "
-            "orden descendente y paginaciÃ³n acotada. No inventa aÃ±os sin datos."
+            "orden descendente y paginación acotada. No inventa años sin datos."
         ),
     )
     async def get_bathing_history(
@@ -164,8 +169,8 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
     @server.tool(
         name="get_bulletin_page",
         description=(
-            "Renderiza una pÃ¡gina del boletÃ­n PDF como imagen PNG. Ãšsala solo si "
-            "get_bathing_status devuelve vision_fallback y tu cliente tiene visiÃ³n; "
+            "Renderiza una página del boletín PDF como imagen PNG. Úsala solo si "
+            "get_bathing_status devuelve vision_fallback y tu cliente tiene visión; "
             "no inventes filas que no puedas leer."
         ),
     )
@@ -186,7 +191,7 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
             "mime_type": rendered.mime_type,
             "width": rendered.width,
             "height": rendered.height,
-            "note": "PÃ¡gina del boletÃ­n original para lectura por visiÃ³n.",
+            "note": "Página del boletín original para lectura por visión.",
         }
         return CallToolResult(
             content=[
