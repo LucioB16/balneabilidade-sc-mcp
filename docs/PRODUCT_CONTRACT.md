@@ -1,6 +1,6 @@
-# MCP product contract (evidence-based; Phase 1)
+# MCP product contract (evidence-based; provider implemented in Phase 2)
 
-**Status:** design contract grounded in the 2026-11-14 live discovery in [`DISCOVERY_REPORT.md`](DISCOVERY_REPORT.md). The MCP server is **not implemented yet** (Phase 3). Phase 2 builds the provider behind this contract.
+**Status:** design contract grounded in the 2026-11-14 live discovery in [`DISCOVERY_REPORT.md`](DISCOVERY_REPORT.md). The normalized provider behind this contract is implemented and offline-tested in Phase 2 ([provider notes](PROVIDER.md)). The MCP server is **not implemented yet** (Phase 3).
 
 ## Objective
 
@@ -223,15 +223,17 @@ Rules:
 - If any point is excluded/stale/unknown, do not certify the whole beach; use `partial` with counts and warnings.
 - If the queried beach name is ambiguous, return candidates (do not choose).
 - If `point_id` is supplied but belongs to another beach, return an explicit error.
+- CSV E. coli/rain/temperature values may be absent when the CSV is unavailable; the bulletin verdict and dates still stand. Do not infer values.
 - Always include `sample_date`, `bulletin_date` (when known), source and `fetched_at`. A response without a sample date is not a status.
 - A stale or unverified result must not be presented as current; use "latest published sample dated …" language.
 
-### Freshness policy (provisional, to calibrate in Phase 2)
+### Freshness policy (implemented in Phase 2; calibration continues)
 
 - In-season (October–March, weekly): current if `sample_age_at_bulletin_days <= 10`.
 - Off-season (April–September, monthly): current if `sample_age_at_bulletin_days <= 40`.
 - The bulletin's stated collection dates and exclusion footnote take precedence over the numeric threshold.
 - 45 days alone is insufficient: Ponto 83 (8 days, discarded) and Ponto 94 (25 days, not collected) would pass. See discovery section 6.
+- The provider distinguishes a **discarded** sample (`freshness=excluded`, classification withheld as unknown, raw label preserved) from a **not-collected/carried** point (`freshness=carried_forward`, dated verdict visible with an age warning). It parses the bulletin footnote and the stated collection dates rather than inferring from age alone.
 - When the bulletin is unavailable, use `bulletin_unverified=true` and a conservative window; never use the map `CONDICAO`.
 
 ## Tool: `get_bathing_history`

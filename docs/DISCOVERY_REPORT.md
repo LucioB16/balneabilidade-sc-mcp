@@ -143,7 +143,8 @@ Confirmed semantics:
 ```
 
 - The map `CONDICAO` matched the PDF row condition **260/260**. The map is therefore a *consistent but undated* snapshot, not a validity filter.
-- Parsing feasibility: `pypdf` extracted pages 1–18 successfully; page 19 (complementary information: recommendations, methodology, CONAMA 274 classification) raises `PdfReadError` on a malformed content stream. That page is not needed for the point table, but a production parser must catch page-level failures and not discard the whole bulletin.
+- Parsing feasibility: with the system pypdf 6.16.2 used during Phase 1, page 19 (complementary information: recommendations, methodology, CONAMA 274 classification) raised `PdfReadError` on a malformed content stream. The pinned provider version 6.21.4 extracted all 19 pages. Page-level tolerance remains necessary because PDFs vary, but the current point table is complete.
+- Lookahead matters: on pypdf text, **73 of 260** headings have the date/verdict 3–7 lines later because the address wraps. A two-line window parsed only **187/260** rows; searching forward until the next heading (up to 8 lines) recovered **260/260**. Marola's `VerdictWithinLines=2` would be unsafe with this extraction.
 - Two headings wrap across lines in the extracted text (`Lagoa Boca da Barra - Na foz do Canal do Linguado (Ponto` + `02)`; `Praia da Costeira da Armação- Baía dos Golfinhos (Ponto` + `03)`). A naive line parser misses them. With a two-line heading reflow, all 260 rows matched the catalog; without it, 258/260 matched. This is a concrete correctness risk, not a cosmetic one.
 - An older bulletin (46/2026, 2026-09-24) also parsed to 260 rows but most sample dates were 25–28/08/2026, with 10 points collected on 21/09/2026 in Balneário Camboriú. The intro explains the **off-season monthly cadence** (April–September) and a court-ordered weekly exception for Balneário Camboriú. A PDF row can therefore be legitimately ~30 days old in the off-season. Freshness must be season-aware, not a single fixed number.
 
@@ -306,7 +307,7 @@ Catalog:
 - CSV/PDF key: normalized (`MUNICIPIO`, `BALNEARIO`, `PONTO_NOME`) → UUID. Always include municipality. The current snapshot has no 2-key collisions, but that is not a contract; duplicate beach names exist across municipalities and point names repeat (88 distinct names / 260 points).
 - Normalize with Unicode NFD, strip combining marks, collapse whitespace, uppercase; preserve raw strings in output. Handle punctuation/spacing differences (e.g., `Armação-`, `n°`).
 - If a row cannot be joined, expose it as `unmatched` (do not drop silently); if a catalog point has no row, mark `missing_from_bulletin`.
-- PDF heading reflow: join a line ending in `(Ponto` with the next line if it begins with digits and `)`; then parse the date/verdict from the heading line or the next 1–2 lines. Validate the row count/key match against the catalog before trusting the parse.
+- PDF heading reflow: join a line ending in `(Ponto` with the next line if it begins with digits and `)`; then search the date/verdict forward until the next heading (observed up to 7 lines), not a fixed 2-line window. Validate the row count/key match against the catalog before trusting the parse.
 
 ### 8.4 Caching proposal
 
@@ -419,7 +420,7 @@ The full PDF parsing check (Python 3.12 + `pypdf`): extract pages 1–18, reflow
 - PDF as sole source: rejected — no E. coli values/coordinates; parsing fragility; use CSV/catalog for those.
 - Historical HTML: rejected as primary — per-point HTML, no stable schema.
 
-**SDK/runtime and transport:** Python 3.11+ (3.12.4 available), `httpx`, `pydantic`/typed models, `pypdf`, `pytest`, `ruff`; official MCP Python SDK v2 `MCPServer` over **stdio** in Phase 3. Verify pinned versions in Phase 2. No remote MCP in Phase 1.
+**SDK/runtime and transport:** Python 3.12.4 with uv 0.11.28, `httpx` 0.28.1, `pypdf` 6.21.4, `tzdata`, typed dataclasses, `pytest` 8.4.2, `ruff` 0.17.5 and `mypy` 1.20.2. Official MCP Python SDK **2.3.0** was verified to expose `mcp.server.MCPServer`; it is an optional `mcp` extra for Phase 3 over **stdio**. No remote MCP in Phase 1 or 2.
 
 **Remaining open questions**
 
@@ -434,3 +435,7 @@ The full PDF parsing check (Python 3.12 + `pypdf`): extract pages 1–18, reflow
 - Public repo: <https://github.com/LucioB16/balneabilidade-sc-mcp> (verified `visibility=PUBLIC`, `isPrivate=false`, default branch `main`).
 - Initial commit: `d1b42a4052e7eefc62d68fe4e5b77731abd83286`; `git ls-remote origin` matched `refs/heads/main`.
 - Phase 1 docs commit SHA: recorded in the end-of-phase report and on GitHub.
+
+## 13. Phase 2 implementation status
+
+The normalized provider is implemented in `src/balneabilidade_sc_mcp/` and documented in [`PROVIDER.md`](PROVIDER.md). It parses the live 2026-11-13 PDF to 260 rows, distinguishes discarded Ponto 83 from carried Pontos 94/96, enriches samples with CSV values, and keeps the map out of the status path. Offline tests use synthetic fixtures and never call IMA. The MCP server is still Phase 3.

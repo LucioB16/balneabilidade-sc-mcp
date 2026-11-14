@@ -21,11 +21,11 @@ This is a **phased** project. Execute only the next incomplete phase per run, th
 - [x] Validate discovery reproduction, update completed `PLAN.md` tasks, commit verified discovery milestones and final phase checkpoint with current docs, push and verify remote public files. Report links, commit hash(es) and findings. **STOP pending approval for Phase 2.**
 
 ## Phase 2 — Normalized IMA provider and reliable latest observations
-- [ ] Confirm the Python/uv/official MCP SDK choice against currently installed versions; record lockfile and dependency choices; scaffold maintainable Python package and tests.
-- [ ] Build HTTP client (timeouts, bounded retries, polite headers, cache, typed provider errors, resilient content-type parsing) and canonical municipality/beach/point catalog using the validated routes.
-- [ ] Build normalized models for sampling locations, latest dated measurements, classification, source provenance and confidence/freshness; preserve unknown/indeterminate states.
-- [ ] Implement latest-sample retrieval with discovered source priority (JSON with dates when available, validated CSV or PDF when needed); join points conservatively and expose unmatched observations.
-- [ ] Write fixture-driven unit tests for current and historical feed shapes, empty arrays, UUID IDs, renamed beaches, mixed results, stale data, missing dates, Unicode, timezones and provider failures.
+- [x] Confirm the Python/uv/official MCP SDK choice against currently installed versions; record lockfile and dependency choices; scaffold maintainable Python package and tests.
+- [x] Build HTTP client (timeouts, bounded retries, polite headers, cache, typed provider errors, resilient content-type parsing) and canonical municipality/beach/point catalog using the validated routes.
+- [x] Build normalized models for sampling locations, latest dated measurements, classification, source provenance and confidence/freshness; preserve unknown/indeterminate states.
+- [x] Implement latest-sample retrieval with discovered source priority (JSON with dates when available, validated CSV or PDF when needed); join points conservatively and expose unmatched observations.
+- [x] Write fixture-driven unit tests for current and historical feed shapes, empty arrays, UUID IDs, renamed beaches, mixed results, stale data, missing dates, Unicode, timezones and provider failures.
 - [ ] Run lint, type checks where configured and full offline test suite; update docs/plan and commit/push verified milestones and phase checkpoint. **STOP.**
 
 ## Phase 3 — MCP tools and local client integration

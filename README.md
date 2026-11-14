@@ -1,6 +1,6 @@
 # Balneabilidade SC MCP
 
-**Status: Phase 1 complete — public repository created and IMA/SC discovery documented. The MCP server is not implemented yet.**
+**Status: Phase 2 provider implemented and tested offline. The MCP server is not implemented yet.**
 
 Repository: <https://github.com/LucioB16/balneabilidade-sc-mcp>
 
@@ -19,7 +19,21 @@ Goal: a small Model Context Protocol server that lets an AI agent retrieve the *
 - [Execution plan](PLAN.md)
 - [Discovery report with live evidence, comparisons and recommended architecture](docs/DISCOVERY_REPORT.md)
 - [MCP product contract (schemas and status semantics)](docs/PRODUCT_CONTRACT.md)
+- [Provider implementation and live verification](docs/PROVIDER.md)
 - [Research baseline: leads vs verified evidence](docs/RESEARCH_BASELINE.md)
+
+## Provider (Phase 2)
+
+The normalized provider reads the latest bulletin PDF, joins it to the canonical catalog, enriches the sample with CSV lab values, and falls back conservatively to CSV/analyses when the bulletin is unavailable. It does not use the map's undated `CONDICAO` as a status.
+
+```bash
+uv sync --extra dev
+uv run pytest
+uv run ruff check src tests
+uv run mypy src
+```
+
+Usage and implementation details are in [docs/PROVIDER.md](docs/PROVIDER.md). The offline suite has 49 tests and does not call IMA; the live probe below is separate.
 
 ## Reproduce the discovery
 
@@ -35,7 +49,7 @@ python scripts/discovery_probe.py
 - **Point-level truth.** A beach may have mixed results. 97 beaches have one point; others have up to 10. Never convert one point's verdict into a beach-wide guarantee.
 - **No confirmed data license.** No license/terms were found on the IMA portal or in the Santa Catarina open-data catalog. This repository does not redistribute IMA datasets or PDFs. Do not assume the data is open-licensed; see the discovery report.
 - **No project license yet.** A public repository is not automatically open source. Licensing is a Phase 5 decision.
-- **No server claimed yet.** Installation, MCP configuration and tool examples will be added only after implementation and testing (Phases 2–3).
+- **No MCP server yet.** The provider is a Python library. MCP tools, stdio configuration and client examples are Phase 3.
 
 ## Reference implementation
 
@@ -43,4 +57,4 @@ python scripts/discovery_probe.py
 
 ## Next step
 
-Phase 2: build the normalized IMA provider (catalog, bulletin PDF parsing, CSV history, freshness/exclusion handling) with fixture-driven offline tests. **Awaiting user approval before starting.**
+Phase 3: expose the provider through MCP tools over stdio and test it with an actual MCP client. **Awaiting user approval before starting.**
