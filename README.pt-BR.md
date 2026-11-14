@@ -155,17 +155,12 @@ Um ponto que o IMA/SC não coletou, ou cuja amostra foi descartada, não é apre
 
 O histórico vem dos CSV publicados pelo IMA/SC. O PDF do último boletim é a referência para o estado atual.
 
-## Exemplos
-
-Português:
+## Perguntas de exemplo
 
 - “Qual é o último resultado publicado para a Praia de Zimbros, em Bombinhas?”
-- “Mostre cada ponto de coleta e o histórico de 2025.”
-
-Espanhol:
-
-- “¿Cuál es el último resultado publicado para Praia de Zimbros, en Bombinhas?”
-- “Mostrame cada punto de muestreo y el historial de 2025.”
+- “Mostre cada ponto de coleta; as condições são mistas?”
+- “Mostre o histórico de 2025 da Praia de Zimbros, com datas e valores de laboratório.”
+- “Quais praias se chamam Praia Brava?”
 
 Uma resposta útil informa o ponto, a data da amostra e a data do boletim. Não diz “está segura agora”.
 

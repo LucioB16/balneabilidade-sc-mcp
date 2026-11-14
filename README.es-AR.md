@@ -155,17 +155,12 @@ Un punto que IMA/SC no recolectó, o cuya muestra fue descartada, no se presenta
 
 El historial proviene de los CSV publicados por IMA/SC. El PDF del último boletín es la referencia para el estado actual.
 
-## Ejemplos
-
-Español:
+## Preguntas de ejemplo
 
 - “¿Cuál es el último resultado publicado para Praia de Zimbros, en Bombinhas?”
-- “Mostrame cada punto de muestreo y el historial de 2025.”
-
-Portugués:
-
-- “Qual é o último resultado publicado para a Praia de Zimbros, em Bombinhas?”
-- “Mostre o histórico de 2025 com as datas e os valores de E. coli.”
+- “Mostrame cada punto de muestreo; ¿las condiciones son mixtas?”
+- “Mostrame el historial de 2025 de Praia de Zimbros, con fechas y valores de laboratorio.”
+- “¿Qué playas se llaman Praia Brava?”
 
 Una respuesta útil da el punto, la fecha de muestra y la fecha del boletín. No dice “está segura ahora”.
 

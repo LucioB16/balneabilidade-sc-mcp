@@ -155,17 +155,12 @@ A point that IMA/SC did not collect, or one whose sample was discarded, is not p
 
 History comes from the CSV exports. The latest bulletin PDF is the reference for current status.
 
-## Examples
+## Example questions
 
-Spanish:
-
-- “¿Cuál es el último resultado publicado para Praia de Zimbros, en Bombinhas?”
-- “Mostrame cada punto de muestreo y el historial de 2025.”
-
-Portuguese:
-
-- “Qual é o último resultado publicado para a Praia de Zimbros, em Bombinhas?”
-- “Mostre o histórico de 2025 com as datas e os valores de E. coli.”
+- “What is the latest published result for Praia de Zimbros, and when was it sampled?”
+- “Show every sampling point; are the conditions mixed?”
+- “Show the 2025 history for Praia de Zimbros, with dates and lab values.”
+- “Which beaches are called Praia Brava?”
 
 A useful answer gives the point, the sample date and the bulletin date. It does not say “safe now”.
 
