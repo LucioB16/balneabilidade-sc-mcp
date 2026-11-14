@@ -398,7 +398,7 @@ xxd -l 16 pereque-2026.csv
 head -1 pereque-2026.csv
 ```
 
-**Validated reproduction artifact:** `python scripts/discovery_probe.py` performs a small read-only subset of these calls and checks the catalog, dated analyses, CSV and latest PDF shapes. It printed the expected 260 points, 5 analyses, 75 CSV rows and 317,885-byte PDF on 2026-11-14. It is discovery tooling, not the MCP provider, and is not called by CI.
+**Validated reproduction artifact:** `python scripts/discovery_probe.py` performs a small read-only subset of these calls and checks the catalog, dated analyses, CSV and latest PDF shapes. It printed the expected 260 points, 5 analyses, 75 CSV rows and 317,885-byte PDF on 2026-11-14. It was re-run from a clean clone of commit `90c179f` and passed with the same counts. It is discovery tooling, not the MCP provider, and is not called by CI.
 
 The full PDF parsing check (Python 3.12 + `pypdf`): extract pages 1–18, reflow headings, and assert the row count/key match against the catalog. The ad hoc scripts used for the deeper comparisons were discovery-only and were kept out of the repository (see `.gitignore`); Phase 2 will turn them into tested code.
 

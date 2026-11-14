@@ -18,7 +18,7 @@ This is a **phased** project. Execute only the next incomplete phase per run, th
 - [x] Investigate CORS (only if browser access matters), rate-limit signals, access/robots/terms, data licensing/attribution, error handling, request volume and caching recommendations. Do not run load tests.
 - [x] Update `docs/DISCOVERY_REPORT.md` with an evidence table, reproducible sanitized curl commands, live response-shape examples (no large dataset dumps), alternatives compared, confidence/risk and a recommended architecture.
 - [x] Update `docs/PRODUCT_CONTRACT.md` with empirically grounded tool schemas and point/beach status semantics; write a small validated proof-of-connectivity if it materially supports discovery, but **do not** build the MCP server yet.
-- [ ] Validate discovery reproduction, update completed `PLAN.md` tasks, commit verified discovery milestones and final phase checkpoint with current docs, push and verify remote public files. Report links, commit hash(es) and findings. **STOP pending approval for Phase 2.**
+- [x] Validate discovery reproduction, update completed `PLAN.md` tasks, commit verified discovery milestones and final phase checkpoint with current docs, push and verify remote public files. Report links, commit hash(es) and findings. **STOP pending approval for Phase 2.**
 
 ## Phase 2 — Normalized IMA provider and reliable latest observations
 - [ ] Confirm the Python/uv/official MCP SDK choice against currently installed versions; record lockfile and dependency choices; scaffold maintainable Python package and tests.
@@ -51,7 +51,7 @@ This is a **phased** project. Execute only the next incomplete phase per run, th
 - [ ] Inspect security, public content, licenses, git status, CI results and `gh repo view` public visibility; mark verified DoD boxes, commit/push and report repository URL and SHA.
 
 ## Definition of Done — verifiable
-- [ ] A NEW public GitHub repository was created at project start and its public visibility remains verified.
+- [x] A NEW public GitHub repository was created at project start and its public visibility remains verified.
 - [ ] The IMA/SC discovery report documents live requests, timestamps, changing API shapes, sources and viable fallbacks.
 - [ ] A clean clone can run the MCP server locally using documented commands.
 - [ ] An MCP client can find a Santa Catarina beach and distinguish similarly named beaches or multiple sampling points.
