@@ -115,11 +115,11 @@ This is deliberate: PDF extraction failure is a data-quality state, not an invit
   - `get_bathing_status` for Perequê returned `proper`, 3 points and bulletin 2026-11-13;
   - stderr contained only diagnostics, no stdout protocol contamination.
 - Console entry point starts and exits cleanly on EOF.
-- Clean clone of commit a042d92: uv sync --extra dev, 71 tests, ruff and mypy passed; the console entry point exited cleanly on EOF.
+- Clean clone of commit 453f7c8: uv sync --extra dev, 71 tests, ruff and mypy passed; the console entry point exited cleanly on EOF.
 
 ## Known limitations
 
 - The server has no hosted transport, authentication or rate limiting.
 - The client configuration path is machine-specific; adjust it for the user's checkout.
 - The vision fallback returns images but does not itself produce structured rows; that remains the client model's responsibility and must be clearly labelled.
-- Phase 4 adds history comparison UX and Phase 5 handles public packaging/licensing/CI.
+- Phase 5 handles public packaging, licensing, CI and release metadata.

@@ -144,7 +144,7 @@ With the default cache and a fixed `today=2026-11-14`:
 - `Beira-Mar Norte / Florianópolis`: `improper`; Ponto 94 is `carried_forward` (19/10/2026) while 11 and 95 are current.
 - `Lagoa da Conceição / Florianópolis`: `mixed`; Ponto 96 is `carried_forward` (26/05/2026) while current points remain visible.
 - History for Perequê 2025 returned 3 points sampled 29/12/2025: Ponto 03 `improper` (279), Pontos 04/05 `proper` (132/20), all with `csv_year=2025` and raw CSV provenance. A 2025–2026 query covered both years, and 2026 history returned descending records with pagination.
-- Clean-clone validation: a fresh clone of commit a042d92 completed uv sync --extra dev, all 71 offline tests (provider + MCP), ruff and mypy, and a live provider query returned proper for the 3 Perequê points.
+- Clean-clone validation: a fresh clone of commit 453f7c8 completed uv sync --extra dev, all 71 offline tests (provider + MCP), ruff and mypy, and a live provider query returned proper for the 3 Perequê points.
 
 ## Known limitations and next phases
 

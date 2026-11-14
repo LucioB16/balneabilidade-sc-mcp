@@ -41,7 +41,7 @@ This is a **phased** project. Execute only the next incomplete phase per run, th
 - [x] Preserve raw IMA record provenance, sampling date, result counts/units, qualifiers (`<20` and similar) and classification when available; do not invent missing periods or recompute official classification.
 - [x] Handle historical naming/point identifier drift and conflicting CSV/PDF rows transparently; document precedence and unresolved matches.
 - [x] Add tests across years, year boundaries, duplicate measurements, missing years, empty results and date/time locale behavior.
-- [ ] Verify at least one end-to-end historical query and one latest-status query with real source evidence; update docs/plan and commit/push. **STOP.**
+- [x] Verify at least one end-to-end historical query and one latest-status query with real source evidence; update docs/plan and commit/push. **STOP.**
 
 ## Phase 5 — Public product quality and handoff
 - [ ] Write polished public README (scope, current-vs-real-time caveat, installation, MCP configuration, tools, bilingual example questions, troubleshooting, data provenance/attribution and limitations).

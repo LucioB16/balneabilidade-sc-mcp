@@ -358,7 +358,7 @@ These are grounded in the discovered data, not hard-coded fixtures:
 
 Other Brazilian states; wave/temperature/weather forecasts; jellyfish; advisories not supported by IMA; tourist accommodation; ambient sensor telemetry; a hosted public endpoint without authentication; ranking algorithms; reclassification from lab counts.
 
-## Open decisions before Phase 3
+## Open decisions before release
 
 - Data-reuse/license policy for IMA content (none found; do not publish datasets).
 - Project source license (Phase 5; no LICENSE yet).
