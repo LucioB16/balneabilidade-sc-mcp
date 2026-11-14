@@ -44,11 +44,11 @@ This is a **phased** project. Execute only the next incomplete phase per run, th
 - [x] Verify at least one end-to-end historical query and one latest-status query with real source evidence; update docs/plan and commit/push. **STOP.**
 
 ## Phase 5 — Public product quality and handoff
-- [ ] Write polished public README (scope, current-vs-real-time caveat, installation, MCP configuration, tools, bilingual example questions, troubleshooting, data provenance/attribution and limitations).
-- [ ] Agree on project license and publish its actual text when authorized; do not imply that a public repo is automatically licensed. Preserve attribution if Marola code is copied.
-- [ ] Add GitHub Actions CI for reproducible format/lint/tests/build on a clean checkout; no credentials or calls to IMA required in default CI.
-- [ ] Add release/version metadata and a documented installation command; evaluate optional Streamable HTTP **only as a documented future option**, not an unauthorized public deployment.
-- [ ] Validate a clean clone, install, stdio handshake, discovery of all MCP tools, current + historical queries, graceful provider failure, and source/freshness communication.
+- [x] Write polished public README (scope, current-vs-real-time caveat, installation, MCP configuration, tools, bilingual example questions, troubleshooting, data provenance/attribution and limitations).
+- [x] Agree on project license and publish its actual text when authorized; do not imply that a public repo is automatically licensed. Preserve attribution if Marola code is copied.
+- [x] Add GitHub Actions CI for reproducible format/lint/tests/build on a clean checkout; no credentials or calls to IMA required in default CI.
+- [x] Add release/version metadata and a documented installation command; evaluate optional Streamable HTTP **only as a documented future option**, not an unauthorized public deployment.
+- [x] Validate a clean clone, install, stdio handshake, discovery of all MCP tools, current + historical queries, graceful provider failure, and source/freshness communication.
 - [ ] Inspect security, public content, licenses, git status, CI results and `gh repo view` public visibility; mark verified DoD boxes, commit/push and report repository URL and SHA.
 
 ## Definition of Done — verifiable
