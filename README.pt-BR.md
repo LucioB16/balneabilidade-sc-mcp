@@ -25,7 +25,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0B6E99" alt="Licença MIT"></a>
 </p>
 
-> **Amostras datadas, não leituras ao vivo.** O cartão abaixo é um trecho real de uma resposta MCP da última amostra publicada pelo IMA/SC. Não é uma captura de tela nem uma medição feita agora. O IMA/SC coleta semanalmente na temporada e mensalmente fora dela.
+> **Amostras datadas, não leituras ao vivo.** O cartão abaixo mostra um trecho real de uma resposta MCP. A amostra foi coletada em 2026-11-09 e publicada em 2026-11-13, então não descreve a água de hoje. O IMA/SC coleta semanalmente na temporada e mensalmente fora dela.
 
 | Última amostra publicada | Praia de Zimbros · Bombinhas |
 |:--|:--|
@@ -33,16 +33,16 @@
 | Ponto 10 | `proper` · 789 NMP/100mL |
 | Data da amostra | 2026-11-09 |
 | Boletim | 2026-11-13 |
-| Resumo da praia | `mixed` — os pontos não concordam |
+| Resumo da praia | `mixed` (os pontos não concordam) |
 
-A resposta nomeia cada ponto de coleta, a data em que a amostra foi coletada e o boletim que a publicou. Uma praia nunca é reduzida ao veredito de um único ponto.
+A resposta lista cada ponto com sua data de amostra e seu boletim. Um ponto não decide a praia.
 
 ## O que você pode perguntar
 
 - “Qual é o último resultado publicado para a Praia de Zimbros e de quando é a amostra?”
 - “Mostre cada ponto de coleta; as condições são mistas?”
 - “Mostre o histórico de 2025 da Praia de Zimbros, com datas e valores de laboratório.”
-- “Quais praias se chamam Praia Brava?” — a resposta devolve candidatos, não adivinha.
+- “Quais praias se chamam Praia Brava?” A resposta lista candidatos quando várias compartilham o nome.
 
 ## Instalação
 
@@ -153,7 +153,7 @@ Um ponto que o IMA/SC não coletou, ou cuja amostra foi descartada, não é apre
 - mudanças de nome são expostas em `unmatched_names`, não adivinhadas;
 - se CSV e o último boletim discordarem sobre a mesma amostra, o veredito do boletim é mantido e um warning é retornado.
 
-O histórico é CSV-native. O PDF do último boletim é autoritativo para o estado atual.
+O histórico vem dos CSV publicados pelo IMA/SC. O PDF do último boletim é a referência para o estado atual.
 
 ## Exemplos
 
@@ -167,11 +167,11 @@ Espanhol:
 - “¿Cuál es el último resultado publicado para Praia de Zimbros, en Bombinhas?”
 - “Mostrame cada punto de muestreo y el historial de 2025.”
 
-Uma boa resposta sempre informa o ponto, a data da amostra e a data do boletim. Não diz “está segura agora”.
+Uma resposta útil informa o ponto, a data da amostra e a data do boletim. Não diz “está segura agora”.
 
 ## Fallback de visão
 
-O parser determinístico do PDF é o caminho principal. Se não conseguir validar uma tabela de pontos confiável, `get_bathing_status` inclui metadados `vision_fallback`. Um cliente com modelo que tenha visão pode chamar `get_bulletin_page` e ler as páginas PNG originais. O servidor não chama um LLM, não inventa linhas e não melhora o status porque um modelo possa ler uma página.
+O parser determinístico do PDF é o caminho principal. Se não conseguir validar uma tabela de pontos confiável, `get_bathing_status` inclui metadados `vision_fallback`. Um cliente com modelo que tenha visão pode chamar `get_bulletin_page` e ler as páginas PNG originais. O servidor só devolve imagens de páginas. Não chama um LLM nem cria linhas, e deixa o status sem mudanças.
 
 ## Desenvolvimento
 
@@ -202,11 +202,11 @@ O código e a documentação têm licença MIT. A licença não cobre os dados d
 
 ## Limitações
 
-- O parse do PDF depende do layout; o fallback de visão é do cliente, não é um OCR do servidor.
-- O histórico é CSV-native; o PDF é autoritativo apenas para o último boletim.
+- O parse do PDF depende do layout. O fallback de visão é do cliente; o servidor não faz OCR.
+- O histórico vem de CSV; o PDF é a referência apenas para o último boletim.
 - Os joins por nome exato expõem mudanças em vez de adivinhá-las; um ponto renomeado pode aparecer como unmatched.
-- Apenas stdio local: sem transporte remoto, autenticação, controle de acesso ou rate limiting. Não o exponha à internet sem uma revisão de segurança separada.
-- Sem banco de dados: usa-se um cache TTL pequeno para catálogo, PDFs e CSV.
+- O servidor escuta apenas em stdio local. Não tem transporte remoto, autenticação, controle de acesso ou rate limiting. Não o exponha à internet sem uma revisão de segurança separada.
+- O provedor usa um cache TTL pequeno em vez de um banco de dados.
 - Isto não é uma garantia médica nem de segurança.
 
 ## Documentação

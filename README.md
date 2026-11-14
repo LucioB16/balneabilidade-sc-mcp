@@ -25,7 +25,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0B6E99" alt="MIT license"></a>
 </p>
 
-> **Dated samples, not live readings.** The card below is a real MCP response excerpt from the latest sample published by IMA/SC. It is not a screenshot and not a measurement taken right now. IMA/SC sampling is weekly in-season and monthly off-season.
+> **Dated samples, not live readings.** The card below is a real MCP response excerpt. The sample was collected on 2026-11-09 and published on 2026-11-13, so it does not describe the water today. IMA/SC sampling is weekly in-season and monthly off-season.
 
 | Latest published sample | Praia de Zimbros · Bombinhas |
 |:--|:--|
@@ -33,16 +33,16 @@
 | Ponto 10 | `proper` · 789 NMP/100mL |
 | Sample date | 2026-11-09 |
 | Bulletin | 2026-11-13 |
-| Beach summary | `mixed` — the points disagree |
+| Beach summary | `mixed` (the points disagree) |
 
-The answer names each sampling point, the date it was sampled and the bulletin that published it. A beach is never reduced to one point's verdict.
+The response lists each sampling point with its sample date and bulletin date. One point does not decide the beach.
 
 ## What you can ask
 
 - “What is the latest published result for Praia de Zimbros, and when was it sampled?”
 - “Show every sampling point; are the conditions mixed?”
 - “Show the 2025 history for Praia de Zimbros, with dates and lab values.”
-- “Which beaches are called Praia Brava?” — the answer returns candidates, not a guess.
+- “Which beaches are called Praia Brava?” The answer lists candidates when several beaches share the name.
 
 ## Installation
 
@@ -153,7 +153,7 @@ A point that IMA/SC did not collect, or one whose sample was discarded, is not p
 - point-name drift is exposed in `unmatched_names` instead of being guessed;
 - when CSV and the latest bulletin disagree about the same sample, the bulletin verdict is kept and a warning is returned.
 
-History is CSV-native. The latest bulletin PDF is authoritative for current status.
+History comes from the CSV exports. The latest bulletin PDF is the reference for current status.
 
 ## Examples
 
@@ -167,11 +167,11 @@ Portuguese:
 - “Qual é o último resultado publicado para a Praia de Zimbros, em Bombinhas?”
 - “Mostre o histórico de 2025 com as datas e os valores de E. coli.”
 
-A good answer always gives the point, the sample date and the bulletin date. It does not say “safe now”.
+A useful answer gives the point, the sample date and the bulletin date. It does not say “safe now”.
 
 ## Vision fallback
 
-The deterministic PDF parser is primary. If it cannot validate a trustworthy point table, `get_bathing_status` includes `vision_fallback` metadata. A client with a vision-capable model can call `get_bulletin_page` and read the original PNG pages. The server does not call an LLM, does not invent rows and does not upgrade the status because a model might read a page.
+The deterministic PDF parser is primary. If it cannot validate a trustworthy point table, `get_bathing_status` includes `vision_fallback` metadata. A client with a vision-capable model can call `get_bulletin_page` and read the original PNG pages. The server only returns page images. It does not call an LLM or create rows, and it leaves the status unchanged.
 
 ## Development
 
@@ -202,11 +202,11 @@ Code and documentation are MIT licensed. The license does not cover IMA/SC data.
 
 ## Limitations
 
-- PDF parsing depends on layout; the vision fallback is client-driven, not a server-side OCR service.
-- History is CSV-native; the PDF is authoritative only for the latest bulletin.
+- PDF parsing depends on layout. The vision fallback runs in the client; the server does not run OCR.
+- History comes from CSV; the PDF is the reference only for the latest bulletin.
 - Exact-name joins expose drift instead of guessing; renamed points may appear as unmatched.
-- Local stdio only: no remote transport, authentication, access control or rate limiting. Do not expose it to the internet without a separate security review.
-- No database: a small TTL file cache is used for catalog, PDFs and CSV.
+- The server listens only on local stdio. It has no remote transport, authentication, access control or rate limiting. Do not expose it to the internet without a separate security review.
+- The provider uses a small TTL file cache instead of a database.
 - This is not a medical or safety guarantee.
 
 ## Documentation
