@@ -26,7 +26,7 @@ This is a **phased** project. Execute only the next incomplete phase per run, th
 - [x] Build normalized models for sampling locations, latest dated measurements, classification, source provenance and confidence/freshness; preserve unknown/indeterminate states.
 - [x] Implement latest-sample retrieval with discovered source priority (JSON with dates when available, validated CSV or PDF when needed); join points conservatively and expose unmatched observations.
 - [x] Write fixture-driven unit tests for current and historical feed shapes, empty arrays, UUID IDs, renamed beaches, mixed results, stale data, missing dates, Unicode, timezones and provider failures.
-- [ ] Run lint, type checks where configured and full offline test suite; update docs/plan and commit/push verified milestones and phase checkpoint. **STOP.**
+- [x] Run lint, type checks where configured and full offline test suite; update docs/plan and commit/push verified milestones and phase checkpoint. **STOP.**
 
 ## Phase 3 — MCP tools and local client integration
 - [ ] Implement `search_beaches` and `get_sampling_points` with unambiguous matching, useful candidate lists and stable structured outputs.
