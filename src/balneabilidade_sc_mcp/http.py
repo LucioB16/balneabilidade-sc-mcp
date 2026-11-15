@@ -48,6 +48,7 @@ class ImaHttpClient:
         retries: int = 2,
         max_bytes: int = DEFAULT_MAX_BYTES,
         retry_delay_seconds: float = 0.25,
+        min_request_interval_seconds: float = 0.0,
         user_agent: str = DEFAULT_USER_AGENT,
         transport: httpx.AsyncBaseTransport | None = None,
         clock: Callable[[], datetime] = lambda: datetime.now(UTC),
@@ -56,6 +57,9 @@ class ImaHttpClient:
         self.retries = max(0, retries)
         self.max_bytes = max_bytes
         self.retry_delay_seconds = max(0.0, retry_delay_seconds)
+        self.min_request_interval_seconds = max(0.0, min_request_interval_seconds)
+        self._request_pace_lock = asyncio.Lock()
+        self._next_request_at = 0.0
         self._clock = clock
         self._client = httpx.AsyncClient(
             base_url=self.base_url,
@@ -73,6 +77,17 @@ class ImaHttpClient:
 
     async def aclose(self) -> None:
         await self._client.aclose()
+
+    async def _pace_request(self) -> None:
+        if self.min_request_interval_seconds == 0:
+            return
+        loop = asyncio.get_running_loop()
+        async with self._request_pace_lock:
+            now = loop.time()
+            delay = max(0.0, self._next_request_at - now)
+            if delay:
+                await asyncio.sleep(delay)
+            self._next_request_at = loop.time() + self.min_request_interval_seconds
 
     async def get(self, path: str, *, max_bytes: int | None = None) -> HttpResponse:
         return await self._request("GET", path, max_bytes=max_bytes)
@@ -100,6 +115,7 @@ class ImaHttpClient:
         while True:
             delay = min(5.0, self.retry_delay_seconds * (2**attempt))
             try:
+                await self._pace_request()
                 response = await self._client.request(method, path.lstrip("/"), data=form)
             except httpx.TimeoutException as exc:
                 if attempt < self.retries:

@@ -5,13 +5,17 @@ import json
 from collections.abc import AsyncIterator
 from datetime import date
 
+import httpx
 from mcp import ClientSession
 from mcp.shared.memory import create_client_server_memory_streams
 from mcp.types import ImageContent, TextContent
+from starlette.testclient import TestClient
 
 from balneabilidade_sc_mcp.bulletin import parse_bulletin_text
 from balneabilidade_sc_mcp.errors import ImaProviderUnavailable
-from balneabilidade_sc_mcp.server import create_server
+from balneabilidade_sc_mcp.http import ImaHttpClient
+from balneabilidade_sc_mcp.provider import ImaProvider
+from balneabilidade_sc_mcp.server import create_server, create_streamable_http_app
 
 from .conftest import (
     FETCHED_AT,
@@ -54,7 +58,7 @@ async def test_server_instructions_include_vision_policy() -> None:
     server = create_server(make_provider())
     assert "vision_fallback" in server.instructions
     assert "get_bulletin_page" in server.instructions
-    assert "tiempo real" in server.instructions
+    assert "real-time" in server.instructions
 
 
 async def test_server_lists_all_tools() -> None:
@@ -67,6 +71,66 @@ async def test_server_lists_all_tools() -> None:
             "get_bathing_history",
             "get_bulletin_page",
         }
+
+
+async def test_all_tools_advertise_read_only_public_data_annotations() -> None:
+    async with mcp_session(make_provider()) as session:
+        result = await session.list_tools()
+    assert len(result.tools) == 5
+    for tool in result.tools:
+        assert tool.annotations is not None
+        assert tool.annotations.read_only_hint is True
+        assert tool.annotations.open_world_hint is True
+        assert tool.annotations.destructive_hint is False
+
+
+def test_streamable_http_app_initializes_and_discovers_tools() -> None:
+    app = create_streamable_http_app(make_provider())
+    headers = {"accept": "application/json, text/event-stream", "content-type": "application/json"}
+    with TestClient(app, base_url="http://127.0.0.1") as client:
+        initialized = client.post(
+            "/mcp",
+            headers=headers,
+            json={
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2025-03-26",
+                    "capabilities": {},
+                    "clientInfo": {"name": "repository-test", "version": "1.0.0"},
+                },
+            },
+        )
+        assert initialized.status_code == 200
+        initialize_result = initialized.json()["result"]
+        assert initialize_result["serverInfo"]["name"] == "balneabilidade-sc-mcp"
+        assert initialize_result["protocolVersion"] == "2025-03-26"
+
+        tools = client.post(
+            "/mcp",
+            headers=headers,
+            json={"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}},
+        )
+        assert tools.status_code == 200
+        advertised = tools.json()["result"]["tools"]
+        assert {tool["name"] for tool in advertised} == {
+            "search_beaches",
+            "get_sampling_points",
+            "get_bathing_status",
+            "get_bathing_history",
+            "get_bulletin_page",
+        }
+        assert all(tool["annotations"]["readOnlyHint"] is True for tool in advertised)
+
+
+def test_streamable_http_lifespan_closes_owned_http_client() -> None:
+    client = ImaHttpClient(transport=httpx.MockTransport(lambda _: httpx.Response(200)))
+    provider = ImaProvider(http=client, own_http=True)
+    app = create_streamable_http_app(provider)
+    with TestClient(app):
+        pass
+    assert client._client.is_closed
 
 
 async def test_search_is_ambiguous_across_municipalities() -> None:

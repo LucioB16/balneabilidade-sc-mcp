@@ -12,16 +12,22 @@ import asyncio
 import base64
 import json
 import logging
+import os
 import sys
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime
 from typing import Any, cast
 
 from mcp.server import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
-from mcp.types import CallToolResult, ImageContent, TextContent
+from mcp.server.transport_security import TransportSecuritySettings
+from mcp.types import CallToolResult, ImageContent, TextContent, ToolAnnotations
+from starlette.applications import Starlette
 
 from . import __version__
 from .errors import ImaError
+from .http import ImaHttpClient
 from .provider import ImaProvider
 from .serialization import status_to_dict, to_jsonable
 
@@ -29,36 +35,55 @@ LOGGER = logging.getLogger("balneabilidade_sc_mcp")
 
 
 def _fail(exc: Exception) -> ToolError:
-    LOGGER.info("tool error: %s", exc)
+    LOGGER.info("tool error type=%s", type(exc).__name__)
     return ToolError(str(exc))
+
+
+READ_ONLY_PUBLIC_DATA = ToolAnnotations(
+    read_only_hint=True,
+    open_world_hint=True,
+    destructive_hint=False,
+)
 
 
 def create_server(provider: ImaProvider | None = None) -> MCPServer:
     """Build an MCPServer around a provider (injectable for tests)."""
 
     provider = provider or ImaProvider()
+
+    @asynccontextmanager
+    async def provider_lifespan(_: MCPServer) -> AsyncIterator[dict[str, ImaProvider]]:
+        async with provider:
+            yield {"provider": provider}
+
     server = MCPServer(
         name="balneabilidade-sc-mcp",
         title="Balneabilidade Santa Catarina (IMA/SC)",
         version=__version__,
+        lifespan=provider_lifespan,
         instructions=(
-            "Consulta la calidad del agua de baño publicada por IMA/SC en Santa Catarina, por "
-            "playa y punto de muestreo. Los resultados son muestras fechadas, no "
-            "tiempo real. Trabaja siempre por punto: una playa puede tener resultados "
-            "mixtos. Si una respuesta incluye vision_fallback, el parser determinista del "
-            "PDF quedó incompleto: solo si tu cliente tiene visión, llama a "
-            "get_bulletin_page para leer las páginas PNG; no inventes filas y marca como "
-            "no verificadas las páginas que no puedas leer. No uses la CONDICAO del mapa "
-            "como estado actual. Preguntas en español o português son bienvenidas."
+            "Use IMA/SC's official published bathing-water data for Santa Catarina, Brazil. "
+            "Always say that results are dated published samples, never real-time readings. "
+            "Preserve each sampling point and report sample date, bulletin date, source and data age. "
+            "Do not hide mixed, partial, unknown, stale or excluded results; never infer a proper result. "
+            "Resolve duplicate beach names by municipality before checking status. "
+            "If vision_fallback is present, only a vision-capable client may read the original page via "
+            "get_bulletin_page; mark unreadable rows as unverified. Never use the map's undated CONDICAO "
+            "as current status. Answer in the user's language (English, español rioplatense or português brasileiro). "
+            "The service is independent and is not developed, operated or endorsed by IMA/SC."
         ),
     )
 
     @server.tool(
         name="search_beaches",
         description=(
-            "Busca playas monitoreadas por IMA/SC por nombre, con desambiguación por "
-            "municipio. Devuelve candidatos; no elige una playa si hay nombres repetidos."
+            "Find beaches monitored by IMA/SC by name and municipality; returns candidates and never "
+            "chooses silently between duplicate names. Busca praias monitoradas pelo IMA/SC por nome e "
+            "município; devolve candidatos e não escolhe silenciosamente entre nomes repetidos. Busca "
+            "playas monitoreadas por IMA/SC por nombre y municipio; devuelve candidatos y no elige "
+            "silenciosamente entre nombres repetidos."
         ),
+        annotations=READ_ONLY_PUBLIC_DATA,
     )
     async def search_beaches(query: str, municipality: str | None = None, limit: int = 10) -> dict[str, Any]:
         try:
@@ -86,9 +111,13 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
     @server.tool(
         name="get_sampling_points",
         description=(
-            "Lista los puntos de muestreo de una playa, con UUID, ubicación y "
-            "coordenadas cuando IMA las publica. La playa debe resolverse sin ambigüedad."
+            "List all IMA/SC sampling points for an unambiguously resolved beach, including UUID, "
+            "location and coordinates when published. Liste todos os pontos de coleta do IMA/SC para "
+            "uma praia identificada sem ambiguidade, incluindo UUID, localização e coordenadas quando "
+            "publicadas. Lista todos los puntos de muestreo de IMA/SC para una playa resuelta sin "
+            "ambigüedad, con UUID, ubicación y coordenadas cuando estén publicadas."
         ),
+        annotations=READ_ONLY_PUBLIC_DATA,
     )
     async def get_sampling_points(
         beach: str, municipality: str | None = None, include_hidden: bool = False
@@ -112,12 +141,15 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
     @server.tool(
         name="get_bathing_status",
         description=(
-            "Devuelve el último resultado publicado FECHADO por punto de muestreo, "
-            "con fecha de muestra, fecha de boletín, frescura y resumen conservador "
-            "de la playa. No es una medición en tiempo real. Si el parser del PDF "
-            "queda incompleto, incluye vision_fallback para que un cliente con visión "
-            "lea las páginas originales."
+            "Return the latest dated IMA/SC result for every sampling point, with sample date, bulletin "
+            "date, freshness, source and a conservative beach summary. This is not real-time. "
+            "Retorna o resultado datado mais recente do IMA/SC para cada ponto, com datas da coleta e do "
+            "boletim, atualidade, fonte e resumo conservador da praia; não é tempo real. Devuelve el "
+            "último resultado fechado de IMA/SC por punto, con fechas de muestra y boletín, antigüedad, "
+            "fuente y resumen conservador; no es tiempo real. If PDF parsing is incomplete, report "
+            "vision_fallback and do not invent rows."
         ),
+        annotations=READ_ONLY_PUBLIC_DATA,
     )
     async def get_bathing_status(
         beach: str,
@@ -133,9 +165,14 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
     @server.tool(
         name="get_bathing_history",
         description=(
-            "Devuelve historial publicado y fechado por playa/punto, con rango inclusivo, "
-            "orden descendente y paginación acotada. No inventa años sin datos."
+            "Return dated IMA/SC history for a beach or sampling point within an inclusive date range, "
+            "newest first and paginated. Distinguish years with no data from years unavailable. Retorne o "
+            "histórico datado do IMA/SC por praia ou ponto, no período inclusivo, do mais recente ao mais "
+            "antigo e com paginação; diferencie anos sem dados de anos indisponíveis. Devuelve el "
+            "historial fechado de IMA/SC por playa o punto en un rango inclusivo, en orden descendente "
+            "y paginado; distingue años sin datos de años no disponibles."
         ),
+        annotations=READ_ONLY_PUBLIC_DATA,
     )
     async def get_bathing_history(
         beach: str,
@@ -163,10 +200,13 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
     @server.tool(
         name="get_bulletin_page",
         description=(
-            "Renderiza una página del boletín PDF como imagen PNG. Úsala solo si "
-            "get_bathing_status devuelve vision_fallback y tu cliente tiene visión; "
-            "no inventes filas que no puedas leer."
+            "Render one page of an official IMA/SC bulletin PDF as PNG. Use it when a vision-capable "
+            "client needs to inspect a page, especially after vision_fallback; do not invent unreadable "
+            "rows. Renderize uma página do boletim oficial do IMA/SC como PNG para inspeção por um "
+            "cliente com visão; não invente linhas ilegíveis. Renderiza una página del boletín oficial "
+            "del IMA/SC como PNG para que un cliente con visión la inspeccione; no inventes filas ilegibles."
         ),
+        annotations=READ_ONLY_PUBLIC_DATA,
     )
     async def get_bulletin_page(
         page: int = 1,
@@ -202,6 +242,47 @@ def create_server(provider: ImaProvider | None = None) -> MCPServer:
     return server
 
 
+def create_streamable_http_app(
+    provider: ImaProvider | None = None,
+    *,
+    streamable_http_path: str = "/mcp",
+) -> Starlette:
+    """Build a stateless Streamable HTTP ASGI app using the same tools as stdio."""
+
+    if provider is None:
+        provider = ImaProvider(
+            http=ImaHttpClient(min_request_interval_seconds=0.2),
+            own_http=True,
+        )
+    server = create_server(provider)
+    allowed_hosts = [
+        value.strip()
+        for value in os.environ.get(
+            "BALNEABILIDADE_ALLOWED_HOSTS",
+            "127.0.0.1,127.0.0.1:*,localhost,localhost:*,[::1],[::1]:*",
+        ).split(",")
+        if value.strip()
+    ]
+    allowed_origins = [
+        value.strip()
+        for value in os.environ.get(
+            "BALNEABILIDADE_ALLOWED_ORIGINS",
+            "http://127.0.0.1:*,http://localhost:*,http://[::1]:*",
+        ).split(",")
+        if value.strip()
+    ]
+    return server.streamable_http_app(
+        streamable_http_path=streamable_http_path,
+        json_response=True,
+        stateless_http=True,
+        transport_security=TransportSecuritySettings(
+            enable_dns_rebinding_protection=True,
+            allowed_hosts=allowed_hosts,
+            allowed_origins=allowed_origins,
+        ),
+    )
+
+
 def main() -> None:
     logging.basicConfig(
         level=logging.INFO,
@@ -211,9 +292,8 @@ def main() -> None:
     LOGGER.info("starting balneabilidade-sc-mcp over stdio")
 
     async def run() -> None:
-        async with ImaProvider() as provider:
-            server = create_server(provider)
-            await server.run_stdio_async()
+        server = create_server(ImaProvider())
+        await server.run_stdio_async()
 
     try:
         asyncio.run(run())

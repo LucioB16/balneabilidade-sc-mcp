@@ -1,3 +1,6 @@
+import asyncio
+from itertools import pairwise
+
 import httpx
 import pytest
 
@@ -78,3 +81,21 @@ async def test_post_form_preserves_portal_characters() -> None:
     assert response.content == b"ok"
     assert b"municipioID=Porto+Belo" in captured[0]
     assert b"localID=Praia+de+Perequ%C3%AA" in captured[0]
+
+
+async def test_parallel_upstream_requests_are_spaced() -> None:
+    starts: list[float] = []
+    loop = asyncio.get_running_loop()
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        starts.append(loop.time())
+        return httpx.Response(200, content=b"ok")
+
+    client = ImaHttpClient(
+        transport=httpx.MockTransport(handler),
+        min_request_interval_seconds=0.025,
+    )
+    await asyncio.gather(client.get("/one"), client.get("/two"), client.get("/three"))
+    gaps = [right - left for left, right in pairwise(starts)]
+    assert len(gaps) == 2
+    assert all(gap >= 0.02 for gap in gaps)
