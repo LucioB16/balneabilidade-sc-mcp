@@ -55,7 +55,9 @@ def main() -> int:
 
     status, content_type, body = fetch("/municipio/getMunicipios", {})
     municipalities = as_json(body)
-    print(f"municipalities: HTTP {status} {content_type} count={len(municipalities)} first={municipalities[0]['DESCRICAO']!r}")
+    print(
+        f"municipalities: HTTP {status} {content_type} count={len(municipalities)} first={municipalities[0]['DESCRICAO']!r}"
+    )
     if not municipalities or not isinstance(municipalities[0].get("CODIGO"), str):
         failures.append("municipality catalog shape changed")
 
@@ -72,13 +74,17 @@ def main() -> int:
 
     status, content_type, body = fetch("/local/getLocaisByMunicipio", {"municipioID": "Porto Belo"})
     beaches = as_json(body)
-    print(f"beaches: HTTP {status} {content_type} Porto Belo count={len(beaches)} names={[b['BALNEARIO'] for b in beaches]}")
+    print(
+        f"beaches: HTTP {status} {content_type} Porto Belo count={len(beaches)} names={[b['BALNEARIO'] for b in beaches]}"
+    )
     if not beaches:
         failures.append("Porto Belo beach catalog was empty")
 
     status, content_type, body = fetch("/pontoColeta/getPontosByLocal", {"localID": "Praia de Perequê"})
     beach_points = as_json(body)
-    print(f"points: HTTP {status} {content_type} Perequê count={len(beach_points)} names={[p['NOME'] for p in beach_points]}")
+    print(
+        f"points: HTTP {status} {content_type} Perequê count={len(beach_points)} names={[p['NOME'] for p in beach_points]}"
+    )
     if not beach_points:
         failures.append("Perequê point catalog was empty")
 
@@ -92,17 +98,21 @@ def main() -> int:
     if not analyses or "DATA" not in analyses[0]:
         failures.append("point analyses did not return dated rows")
 
-    status, content_type, body = fetch("/relatorio/exportarCSV", {
-        "municipioID": "Porto Belo",
-        "localID": "Praia de Perequê",
-        "ano": "2026",
-    })
+    status, content_type, body = fetch(
+        "/relatorio/exportarCSV",
+        {
+            "municipioID": "Porto Belo",
+            "localID": "Praia de Perequê",
+            "ano": "2026",
+        },
+    )
     text = body.decode("utf-8-sig")
     rows = list(csv.reader(io.StringIO(text)))
     header = rows[0] if rows else []
     data_rows = [row for row in rows[1:] if len(row) >= 13]
+    has_bom = body.startswith(b"\xef\xbb\xbf")
     print(
-        f"csv: HTTP {status} {content_type} bytes={len(body)} bom={body[:3] == b'\xef\xbb\xbf'} "
+        f"csv: HTTP {status} {content_type} bytes={len(body)} bom={has_bom} "
         f"columns={len(header)} rows={len(data_rows)} first_date={data_rows[0][4] if data_rows else None}"
     )
     if status != 200 or len(header) != 13 or not data_rows:
@@ -118,7 +128,9 @@ def main() -> int:
         for failure in failures:
             print(f"  - {failure}", file=sys.stderr)
         return 1
-    print("\nOK: catalog, dated analyses, CSV history and bulletin PDF are reachable and shaped as documented.")
+    print(
+        "\nOK: catalog, dated analyses, CSV history and bulletin PDF are reachable and shaped as documented."
+    )
     return 0
 
 

@@ -179,7 +179,7 @@ uv run mypy src
 uv build
 ```
 
-The offline suite has 71 tests and never calls IMA. The read-only discovery probe is separate:
+The offline suite has 76 tests and never calls IMA. The read-only discovery probe is separate:
 
 ```bash
 python scripts/discovery_probe.py
@@ -200,7 +200,8 @@ Code and documentation are MIT licensed. The license does not cover IMA/SC data.
 - PDF parsing depends on layout. The vision fallback runs in the client; the server does not run OCR.
 - History comes from CSV; the PDF is the reference only for the latest bulletin.
 - Exact-name joins expose drift instead of guessing; renamed points may appear as unmatched.
-- The server listens only on local stdio. It has no remote transport, authentication, access control or rate limiting. Do not expose it to the internet without a separate security review.
+- The default command remains local stdio. An optional stateless Streamable HTTP app is available for hosted clients; review [remote HTTP deployment](docs/REMOTE_HTTP.md) before exposing it.
+- The remote endpoint is unauthenticated and read-only. Provider pacing is per process; use ingress rate limits and a single replica unless shared cache and global request limiting are configured.
 - The provider uses a small TTL file cache instead of a database.
 - This is not a medical or safety guarantee.
 
@@ -210,6 +211,7 @@ Code and documentation are MIT licensed. The license does not cover IMA/SC data.
 - [Product contract](docs/PRODUCT_CONTRACT.md)
 - [Provider](docs/PROVIDER.md)
 - [MCP server](docs/MCP_SERVER.md)
+- [Remote Streamable HTTP deployment](docs/REMOTE_HTTP.md)
 - [Release notes](docs/RELEASE.md)
 - [Attribution and data licensing](docs/ATTRIBUTION.md)
 - [Security policy](SECURITY.md)
@@ -222,7 +224,8 @@ src/balneabilidade_sc_mcp/
   bulletin.py       portal index, PDF parsing, exclusions
   history.py        CSV export/parser
   catalog.py        map catalog and matching
-  server.py         MCP stdio tools
+  server.py         MCP tools shared by stdio and Streamable HTTP
+  http_server.py    hosted Streamable HTTP entry point
   pdf_vision.py     PNG rendering fallback
 docs/               discovery, contract, provider, server, release, attribution
 tests/              71 offline tests with synthetic fixtures

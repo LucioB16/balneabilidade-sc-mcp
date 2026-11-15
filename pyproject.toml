@@ -25,6 +25,7 @@ Documentation = "https://github.com/LucioB16/balneabilidade-sc-mcp#documentation
 
 [project.scripts]
 balneabilidade-sc-mcp = "balneabilidade_sc_mcp.server:main"
+balneabilidade-sc-mcp-http = "balneabilidade_sc_mcp.http_server:main"
 
 [project.optional-dependencies]
 mcp = ["mcp>=2.3,<3"]

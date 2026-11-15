@@ -8,6 +8,7 @@ dated history, lab values and a clearly labelled fallback.
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable, Sequence
 from dataclasses import replace
 from datetime import date, datetime
@@ -80,7 +81,8 @@ class ImaProvider:
     ) -> None:
         self._owns_http = http is None
         self._http = http or ImaHttpClient()
-        self._cache = cache or FileCache(Path(".cache/balneabilidade"))
+        cache_root = os.environ.get("BALNEABILIDADE_CACHE_DIR", ".cache/balneabilidade")
+        self._cache = cache or FileCache(Path(cache_root))
         self._catalog = catalog_repository or CatalogRepository(self._http, self._cache)
         self._bulletin = bulletin_repository or BulletinRepository(self._http, self._cache)
         self._history = history_repository or CsvHistoryRepository(self._http, self._cache)
