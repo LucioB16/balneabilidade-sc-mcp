@@ -39,9 +39,9 @@ host provides it; `/tmp` is suitable only for an ephemeral cache.
 - Prefer a single replica with a persistent cache unless the host adds a
   shared cache and a global IMA request limiter. Serverless ephemeral files do
   not provide shared caching or global pacing.
-- Keep access logs disabled or minimize them. The service makes no user account
-  and should not log raw MCP requests; host-level logs and retention still
-  depend on the chosen provider.
+- The application does not log request bodies; tool failures log only the
+  exception type. Keep host access logs disabled or minimize them because
+  their metadata and retention depend on the chosen provider.
 - Do not claim that published samples are real-time. Responses retain sample
   date, bulletin date, source, per-point verdicts, and freshness information.
 

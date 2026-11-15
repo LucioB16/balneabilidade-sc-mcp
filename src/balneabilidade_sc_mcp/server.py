@@ -35,7 +35,7 @@ LOGGER = logging.getLogger("balneabilidade_sc_mcp")
 
 
 def _fail(exc: Exception) -> ToolError:
-    LOGGER.info("tool error: %s", exc)
+    LOGGER.info("tool error type=%s", type(exc).__name__)
     return ToolError(str(exc))
 
 
@@ -249,7 +249,11 @@ def create_streamable_http_app(
 ) -> Starlette:
     """Build a stateless Streamable HTTP ASGI app using the same tools as stdio."""
 
-    provider = provider or ImaProvider(http=ImaHttpClient(min_request_interval_seconds=0.2))
+    if provider is None:
+        provider = ImaProvider(
+            http=ImaHttpClient(min_request_interval_seconds=0.2),
+            own_http=True,
+        )
     server = create_server(provider)
     allowed_hosts = [
         value.strip()

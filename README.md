@@ -179,7 +179,7 @@ uv run mypy src
 uv build
 ```
 
-The offline suite has 76 tests and never calls IMA. The read-only discovery probe is separate:
+The offline suite has 75 tests and never calls IMA. The read-only discovery probe is separate:
 
 ```bash
 python scripts/discovery_probe.py
@@ -228,5 +228,5 @@ src/balneabilidade_sc_mcp/
   http_server.py    hosted Streamable HTTP entry point
   pdf_vision.py     PNG rendering fallback
 docs/               discovery, contract, provider, server, release, attribution
-tests/              71 offline tests with synthetic fixtures
+tests/              75 offline tests with synthetic fixtures
 ```

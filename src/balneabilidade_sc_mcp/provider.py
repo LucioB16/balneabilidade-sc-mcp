@@ -76,10 +76,11 @@ class ImaProvider:
         bulletin_repository: BulletinRepository | None = None,
         history_repository: CsvHistoryRepository | None = None,
         analyses_repository: AnalysesRepository | None = None,
+        own_http: bool | None = None,
         clock: Callable[[], datetime] = utcnow,
         today: Callable[[], date] | None = None,
     ) -> None:
-        self._owns_http = http is None
+        self._owns_http = http is None if own_http is None else own_http
         self._http = http or ImaHttpClient()
         cache_root = os.environ.get("BALNEABILIDADE_CACHE_DIR", ".cache/balneabilidade")
         self._cache = cache or FileCache(Path(cache_root))

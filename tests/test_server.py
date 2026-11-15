@@ -5,6 +5,7 @@ import json
 from collections.abc import AsyncIterator
 from datetime import date
 
+import httpx
 from mcp import ClientSession
 from mcp.shared.memory import create_client_server_memory_streams
 from mcp.types import ImageContent, TextContent
@@ -12,6 +13,8 @@ from starlette.testclient import TestClient
 
 from balneabilidade_sc_mcp.bulletin import parse_bulletin_text
 from balneabilidade_sc_mcp.errors import ImaProviderUnavailable
+from balneabilidade_sc_mcp.http import ImaHttpClient
+from balneabilidade_sc_mcp.provider import ImaProvider
 from balneabilidade_sc_mcp.server import create_server, create_streamable_http_app
 
 from .conftest import (
@@ -119,6 +122,15 @@ def test_streamable_http_app_initializes_and_discovers_tools() -> None:
             "get_bulletin_page",
         }
         assert all(tool["annotations"]["readOnlyHint"] is True for tool in advertised)
+
+
+def test_streamable_http_lifespan_closes_owned_http_client() -> None:
+    client = ImaHttpClient(transport=httpx.MockTransport(lambda _: httpx.Response(200)))
+    provider = ImaProvider(http=client, own_http=True)
+    app = create_streamable_http_app(provider)
+    with TestClient(app):
+        pass
+    assert client._client.is_closed
 
 
 async def test_search_is_ambiguous_across_municipalities() -> None:
